@@ -1,2 +1,3 @@
 node_modules/
 fontend/node_modules/
+.env

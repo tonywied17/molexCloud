@@ -11,7 +11,7 @@ const PrivateFiles = () => {
   const fetchPrivateFiles = async () => {
     try {
       const response = await getPrivateFiles();
-      setPrivateFiles(response.data);
+      setPrivateFiles(response);
     } catch (error) {
       console.error('Error fetching private files:', error);
     }
@@ -20,11 +20,15 @@ const PrivateFiles = () => {
   return (
     <div>
       <h2>Private Files</h2>
-      <ul>
-        {privateFiles.map((file, index) => (
-          <li key={index}>{file.filename}</li>
-        ))}
-      </ul>
+      {privateFiles.length > 0 ? (
+        <ul>
+          {privateFiles.map((file, index) => (
+            <li key={index}>{file.filename}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No private files found</p>
+      )}
     </div>
   );
 };

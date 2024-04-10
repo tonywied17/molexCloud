@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import PublicFiles from './PublicFiles';
 import RegisterForm from './RegisterForm';
 import LoginForm from './LoginForm';
+import UploadForm from './UploadForm';
 import PrivateFiles from './PrivateFiles';
 import { getPublicFiles, getPrivateFiles } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
@@ -11,6 +12,8 @@ const Dashboard = () => {
   const [privateFiles, setPrivateFiles] = useState([]);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 
   useEffect(() => {
@@ -48,6 +51,11 @@ const Dashboard = () => {
     setShowLoginForm(false);
   };
 
+  const toggleUploadForm = () => {
+    setShowUploadForm(!showUploadForm);
+  };
+  
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
@@ -63,6 +71,8 @@ const Dashboard = () => {
         </>
       )}
       {isLoggedIn && <button onClick={handleLogout}>Logout</button>}
+      {isLoggedIn && <button onClick={toggleUploadForm}>Upload File</button>}
+      {isLoggedIn && showUploadForm && <UploadForm />}
       {showLoginForm && <LoginForm />}
       {showRegisterForm && <RegisterForm />}
       {isLoggedIn && <PrivateFiles files={privateFiles} />}

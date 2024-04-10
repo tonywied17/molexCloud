@@ -21,31 +21,29 @@ const UploadForm = () => {
   
     const chunkSize = 10 * 1024 * 1024; // 10MB
     const totalChunks = Math.ceil(file.size / chunkSize);
-    let start = 0;
   
     for (let i = 1; i <= totalChunks; i++) {
-      const chunk = file.slice(start, start + chunkSize);
+      const start = (i - 1) * chunkSize;
+      const end = i * chunkSize;
+      const chunk = file.slice(start, end);
+      const chunkUrl = URL.createObjectURL(chunk); 
+  
       const formData = new FormData();
-      formData.append('filename', file.name);
-      formData.append('chunkNumber', i);
+      formData.append('chunkUrl', chunkUrl); 
+      formData.append('originalname', file.name);
       formData.append('totalChunks', totalChunks);
-      formData.append('chunk', chunk);
       formData.append('isPrivate', isPrivate);
   
       try {
-        console.log(`Uploading chunk ${i}/${totalChunks}...`);
+        console.log(`Uploading chunk ${i}...`);
         const response = await uploadFileChunk(formData);
-        console.log(`Chunk ${i}/${totalChunks} uploaded successfully.`, response);
-        start += chunkSize;
+        console.log(`Chunk ${i} uploaded successfully:`, response);
       } catch (error) {
-        console.error('Error uploading file chunk:', error);
-        return;
+        console.error(`Error uploading chunk ${i}:`, error);
       }
     }
-  
-    console.log('File uploaded successfully');
   };
-
+  
   return (
     <div>
       <h2>Upload File</h2>

@@ -8,23 +8,25 @@ const api = axios.create({
   },
 });
 
-export const registerUser = async (userData) => {
+export const registerUser = async ({ username, password }) => {
   try {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('/auth/register', { username, password });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const loginUser = async (userData) => {
+
+export const loginUser = async ({ username, password }) => {
   try {
-    const response = await api.post('/auth/login', userData);
+    const response = await api.post('/auth/login', { username, password });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
+
 
 export const getPublicFiles = async () => {
   try {
@@ -37,18 +39,28 @@ export const getPublicFiles = async () => {
 
 export const getPrivateFiles = async () => {
   try {
-    const response = await api.get('/files/private');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+
+    const response = await api.get('/files/private', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log(response.data)
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const uploadFileChunk = async (fileData) => {
+export const uploadFileChunk = async (formData) => {
   try {
-    const response = await axios.post(`${API_URL}/files/upload/chunk`, fileData, {
+    const response = await axios.post(`${API_URL}/files/upload/chunk`, formData, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     });

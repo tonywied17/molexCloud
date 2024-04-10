@@ -1,32 +1,7 @@
-const multer = require('multer');
-const FileType = require('file-type');
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
 const File = require('../models/File');
 const jwt = require('jsonwebtoken');
-
-//! Uploading Configuration
-const uploadDirectory = path.join(__dirname, '../../uploads');
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decodedToken.userId;
-
-    const userUploadDirectory = path.join(uploadDirectory, userId);
-    fs.mkdir(userUploadDirectory, { recursive: true }).then(() => {
-      cb(null, userUploadDirectory);
-    }).catch(err => {
-      cb(err);
-    });
-  },
-  filename: (req, file, cb) => {
-    const uniqueFileName = `${Date.now()}-${file.originalname}`;
-    cb(null, uniqueFileName);
-  }
-});
-
-const upload = multer({ storage: storage }).single('file');
 
 //! Get all files excluding private files
 async function getAllFiles(req, res) {
@@ -43,7 +18,7 @@ async function getAllFiles(req, res) {
 async function getPrivateFiles(req, res) {
   try {
     const files = await File.findAll({ where: { isPrivate: true } });
-    res.json(files);
+    res.json(files || []);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -53,47 +28,59 @@ async function getPrivateFiles(req, res) {
 //! Upload file chunk
 async function uploadFileChunk(req, res) {
   try {
-    upload(req, res, async function(err) {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Internal server error');
-      }
+    const { chunkUrl, originalname, totalChunks, isPrivate } = req.body;
+    
+    const userId = req.user.userId.toString();
+    const timestamp = Date.now();
+    const filename = `${timestamp}-${originalname}`;
+    const uploadDirectory = path.join(__dirname, '../../uploads');
+    const userUploadDirectory = path.join(uploadDirectory, userId);
 
-      const { filename, chunkNumber, totalChunks } = req.body;
-      const chunkPath = path.join(uploadDirectory, req.user.id.toString(), `${filename}.part${chunkNumber}`);
+    // Ensure directory exists
+    fs.mkdirSync(userUploadDirectory, { recursive: true });
 
-      await fs.writeFile(chunkPath, req.body.chunk, { flag: 'wx' });
+    console.log('Uploading file:', filename);
+    console.log('Total chunks:', totalChunks);
+    console.log('Is private:', isPrivate);
+    console.log('User ID:', userId);
+    console.log('User upload directory:', userUploadDirectory);
 
-      if (chunkNumber === totalChunks) {
-        const filePath = path.join(uploadDirectory, req.user.id.toString(), filename);
-        const writeStream = fs.createWriteStream(filePath, { flags: 'a' });
 
-        for (let i = 1; i <= totalChunks; i++) {
-          const chunkPath = path.join(uploadDirectory, req.user.id.toString(), `${filename}.part${i}`);
-          const chunkData = await fs.readFile(chunkPath);
-          writeStream.write(chunkData);
-          await fs.unlink(chunkPath);
-        }
+    // Store all chunks in an array
+    const chunkDataArray = [];
+    for (let i = 1; i <= totalChunks; i++) {
+      const chunk = req.files[`chunk${i}`];
+      console.log(`Chunk ${i}`, chunk);
+      const response = await axios.get(chunkUrl, { responseType: 'blob' });
+      const chunkData = await response.data;
+      console.log(`Chunk ${i} data length:`, chunkData.length);
+      chunkDataArray.push(chunkData);
+    }
 
-        writeStream.end();
+    // Concatenate all chunks
+    const concatenatedData = Buffer.concat(chunkDataArray);
+    console.log('Concatenated data length:', concatenatedData.length);
 
-        const fileType = await FileType.fromFile(filePath);
-        const mimeType = fileType ? fileType.mime : null;
+    // Write concatenated data to the file
+    const filePath = path.join(userUploadDirectory, filename);
+    await fs.promises.writeFile(filePath, concatenatedData);
 
-        await File.create({
-          filename: filename,
-          path: filePath,
-          isPrivate: req.body.isPrivate || false,
-          fileType: mimeType || null
-        });
+    // Check if file exists after writing
+    const fileExists = await fs.promises.access(filePath, fs.constants.F_OK);
+    console.log('File exists after writing:', fileExists);
 
-        res.sendStatus(200);
-      } else {
-        res.sendStatus(200);
-      }
+    await File.create({
+      filename: filename,
+      path: filePath,
+      isPrivate: isPrivate,
+      fileType: 'png' 
     });
+
+    console.log('File uploaded successfully:', filename);
+
+    res.sendStatus(200);
   } catch (error) {
-    console.error(error);
+    console.error('Error uploading file:', error);
     res.status(500).send('Internal server error');
   }
 }

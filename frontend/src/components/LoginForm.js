@@ -11,7 +11,8 @@ const LoginForm = () => {
     e.preventDefault();
     try {
       const response = await loginUser({ username, password });
-      localStorage.setItem('token', response.data.token);
+      console.log('Login response:', response.token);
+      localStorage.setItem('token', response.token);
       setIsLoggedIn(true);
     } catch (error) {
       console.error('Error logging in:', error);

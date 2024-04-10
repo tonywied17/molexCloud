@@ -12,8 +12,10 @@ function authenticateToken(req, res, next) {
     if (err) {
       return res.status(403).json({ error: 'Token is invalid' });
     }
-    
     req.user = decodedToken;
+    console.log('decodedToken:', JSON.stringify(decodedToken));
+
+    
     next();
   });
 }

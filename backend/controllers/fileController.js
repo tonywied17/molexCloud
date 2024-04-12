@@ -5,7 +5,7 @@ const fsPromises = {
   writeFile: promisify(fs.writeFile),
   mkdir: promisify(fs.mkdir),
   rmdir: promisify(fs.rmdir),
-  unlink: promisify(fs.unlink) // Adding promisified unlink function
+  unlink: promisify(fs.unlink)
 };
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -35,6 +35,7 @@ async function getPrivateFiles(req, res) {
   }
 }
 
+//! Upload file chunk
 async function uploadFileChunk(req, res) {
   try {
     const isPrivate = req.headers.isprivate === 'true';
@@ -74,15 +75,19 @@ async function uploadFileChunk(req, res) {
           const chunkPath = path.join(tempChunkDirectory, `${i}.chunk`);
           console.log('Processing chunk:', chunkPath);
           const readStream = fs.createReadStream(chunkPath);
-          await pipeline(readStream, finalFileStream);
+          await pipeline(readStream, finalFileStream, { end: false });
           console.log('Chunk processed:', chunkPath);
-        }        
+        }
 
         finalFileStream.end();
 
         await fsPromises.rmdir(tempChunkDirectory, { recursive: true });
 
         console.log(`File ${fileName} assembled successfully`);
+
+        const { fileTypeFromFile } = await import('file-type');
+        const type = await fileTypeFromFile(finalFilePath)
+        const fileTypeString = type ? (type.mime || type.ext || 'unknown') : 'unknown';
 
         const existingFile = await File.findOne({ where: { filename: fileName } });
         if (existingFile) {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { uploadFileChunk } from '../services/api';
+import { uploadFileChunk, getPublicFiles, getPrivateFiles } from '../services/api';
 
-const UploadForm = () => {
+const UploadForm = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [isPrivate, setIsPrivate] = useState(false);
 
@@ -25,6 +25,7 @@ const UploadForm = () => {
 
     console.log('Total chunks:', totalChunks);
     console.log('Is private:', isPrivate);
+    console.log('File size:', formatFileSize(file.size));
 
     for (let i = 1; i <= totalChunks; i++) {
       const start = (i - 1) * chunkSize;
@@ -35,17 +36,31 @@ const UploadForm = () => {
       formData.append('chunk', chunk, file.name);
       formData.append('originalname', file.name);
       console.log('chunk:', chunk);
-      console.log('originalname:', file.name);
 
       try {
-        console.log(`Uploading chunk ${i}...`);
+        console.log(`Uploading chunk ${i}/${totalChunks}...`);
         const response = await uploadFileChunk(formData, isPrivate, totalChunks, i);
-        console.log(`Chunk ${i} uploaded successfully:`, response);
+        if (response.status === 201) {
+          console.log(`File ${file.name} - ${formatFileSize(file.size)} uploaded in ${totalChunks} chunks`);
+          await onUploadSuccess();
+        }
       } catch (error) {
         console.error(`Error uploading chunk ${i}:`, error);
       }
     }
   };
+
+  function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024 * 1024) {
+      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    } else if (bytes >= 1024 * 1024) {
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    } else if (bytes >= 1024) {
+      return (bytes / 1024).toFixed(2) + ' KB';
+    } else {
+      return bytes + ' bytes';
+    }
+  }
 
   return (
     <div>

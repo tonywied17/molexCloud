@@ -10,12 +10,15 @@ router.get('/', fileController.getAllFiles);
 // Protected route for uploading files
 const upload = multer({
   storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/');
+    },
     filename: function (req, file, cb) {
       console.log('Received file route storage:', file.originalname);
       cb(null, Date.now() + '-' + file.originalname);
     }
   }),
-  extended: true
+  limits: { fileSize: Infinity }, 
 });
 
 router.post('/upload/chunk', authenticateToken, upload.single('chunk'), fileController.uploadFileChunk);

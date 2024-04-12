@@ -17,29 +17,20 @@ const Dashboard = () => {
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 
   useEffect(() => {
-    fetchPublicFiles();
     if (isLoggedIn) {
-      fetchPrivateFiles();
+      getPrivateFiles()
+        .then(response => setPrivateFiles(response))
+        .catch(error => console.error('Error fetching private files:', error));
+    } else {
+      setPrivateFiles([]);
     }
   }, [isLoggedIn]);
 
-  const fetchPublicFiles = async () => {
-    try {
-      const response = await getPublicFiles();
-      setPublicFiles(response);
-    } catch (error) {
-      console.error('Error fetching public files:', error);
-    }
-  };
-
-  const fetchPrivateFiles = async () => {
-    try {
-      const response = await getPrivateFiles();
-      setPrivateFiles(response);
-    } catch (error) {
-      console.error('Error fetching private files:', error);
-    }
-  };
+  useEffect(() => {
+    getPublicFiles()
+      .then(response => setPublicFiles(response))
+      .catch(error => console.error('Error fetching public files:', error));
+  }, []);
 
   const toggleLoginForm = () => {
     setShowLoginForm(!showLoginForm);
@@ -54,7 +45,6 @@ const Dashboard = () => {
   const toggleUploadForm = () => {
     setShowUploadForm(!showUploadForm);
   };
-  
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -69,6 +59,24 @@ const Dashboard = () => {
     setShowRegisterForm(false);
   };
 
+  const fetchFiles = async () => {
+    try {
+      const publicFilesResponse = await getPublicFiles();
+      setPublicFiles(publicFilesResponse);
+      if (isLoggedIn) {
+        const privateFilesResponse = await getPrivateFiles();
+        setPrivateFiles(privateFilesResponse);
+      }
+    } catch (error) {
+      console.error('Error fetching files:', error);
+    }
+  };
+
+  const handleUploadSuccess = async () => {
+    setShowUploadForm(false); 
+    await fetchFiles();
+  };
+
   return (
     <div>
       <h1>Dashboard</h1>
@@ -80,7 +88,7 @@ const Dashboard = () => {
       )}
       {isLoggedIn && <button onClick={handleLogout}>Logout</button>}
       {isLoggedIn && <button onClick={toggleUploadForm}>Upload File</button>}
-      {isLoggedIn && showUploadForm && <UploadForm />}
+      {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} />}
       {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} />}
       {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} />}
       {isLoggedIn && <PrivateFiles files={privateFiles} />}

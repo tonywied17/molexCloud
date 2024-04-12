@@ -10,7 +10,9 @@ const RegisterForm = ({ onRegisterSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await registerUser({ username, password });
+      const response = await registerUser({ username, password });
+      console.log('Login response:', response.token);
+      localStorage.setItem('token', response.token);
       setIsLoggedIn(true);
       alert('User registered successfully');
       onRegisterSuccess();

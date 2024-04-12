@@ -11,6 +11,7 @@ const api = axios.create({
 export const registerUser = async ({ username, password }) => {
   try {
     const response = await api.post('/auth/register', { username, password });
+    console.log(response)
     return response.data;
   } catch (error) {
     throw error;
@@ -49,7 +50,6 @@ export const getPrivateFiles = async () => {
         Authorization: `Bearer ${token}`
       }
     });
-    console.log(response.data)
     return response.data;
   } catch (error) {
     throw error;
@@ -67,7 +67,7 @@ export const uploadFileChunk = async (formData, isPrivate, totalChunks, chunkNum
         chunkNumber: chunkNumber.toString(),
       }
     });
-    return response.data;
+    return response;
   } catch (error) {
     throw error;
   }

@@ -1,33 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { getPrivateFiles } from '../services/api';
+import React from 'react';
 
-const PrivateFiles = () => {
-  const [privateFiles, setPrivateFiles] = useState([]);
-
-  useEffect(() => {
-    fetchPrivateFiles();
-  }, []);
-
-  const fetchPrivateFiles = async () => {
-    try {
-      const response = await getPrivateFiles();
-      setPrivateFiles(response);
-    } catch (error) {
-      console.error('Error fetching private files:', error);
-    }
-  };
+const PrivateFiles = ({ files }) => {
+  if (!files) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <div>
       <h2>Private Files</h2>
-      {privateFiles.length > 0 ? (
-        <ul>
-          {privateFiles.map((file, index) => (
-            <li key={index}>{file.filename}</li>
+      {files.length > 0 ? (
+        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+          {files.map((file, index) => (
+
+              <div key={index} style={{ border: '1px solid #000', display: 'flex', flexDirection: 'column', gap: '5px', minWidth: '70vw' }}>
+                {file.filename}
+                <b>{file.fileType}</b>
+                <i>{file.path}</i>
+              </div>
+             
           ))}
-        </ul>
+        </div>
       ) : (
-        <p>No private files found</p>
+        <p>No public files found</p>
       )}
     </div>
   );

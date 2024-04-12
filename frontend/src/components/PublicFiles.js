@@ -1,6 +1,10 @@
 import React from 'react';
 
 const PublicFiles = ({ files }) => {
+  if (!files) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div>
       <h2>Public Files</h2>

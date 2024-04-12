@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { loginUser } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 
-const LoginForm = () => {
+const LoginForm = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
@@ -14,6 +14,7 @@ const LoginForm = () => {
       console.log('Login response:', response.token);
       localStorage.setItem('token', response.token);
       setIsLoggedIn(true);
+      onLoginSuccess();
     } catch (error) {
       console.error('Error logging in:', error);
     }

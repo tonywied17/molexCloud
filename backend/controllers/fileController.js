@@ -1,7 +1,16 @@
 const fs = require('fs');
+const { promisify } = require('util');
+const fsPromises = {
+  ...fs,
+  readFile: promisify(fs.readFile),
+  writeFile: promisify(fs.writeFile),
+  mkdir: promisify(fs.mkdir),
+  rmdir: promisify(fs.rmdir)
+};
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 const File = require('../models/File');
-const jwt = require('jsonwebtoken');
+const { pipeline } = require('stream/promises');
 
 //! Get all files excluding private files
 async function getAllFiles(req, res) {
@@ -28,59 +37,60 @@ async function getPrivateFiles(req, res) {
 //! Upload file chunk
 async function uploadFileChunk(req, res) {
   try {
-    const { chunkUrl, originalname, totalChunks, isPrivate } = req.body;
-    
+    const isPrivate = req.headers.isprivate === 'true';
+    const totalChunks = parseInt(req.headers.totalchunks);
+    const chunkNumber = parseInt(req.headers.chunknumber);
+    const tempDirectory = path.join(__dirname, '../../uploads/temp');
+
     const userId = req.user.userId.toString();
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${originalname}`;
-    const uploadDirectory = path.join(__dirname, '../../uploads');
-    const userUploadDirectory = path.join(uploadDirectory, userId);
 
-    // Ensure directory exists
-    fs.mkdirSync(userUploadDirectory, { recursive: true });
+    let chunk = req.files.chunk;
 
-    console.log('Uploading file:', filename);
-    console.log('Total chunks:', totalChunks);
-    console.log('Is private:', isPrivate);
-    console.log('User ID:', userId);
-    console.log('User upload directory:', userUploadDirectory);
+    const fileName = chunk.name;
+    const tempChunkDirectory = path.join(tempDirectory, uuidv4());
 
+    await fsPromises.mkdir(tempChunkDirectory, { recursive: true });
 
-    // Store all chunks in an array
-    const chunkDataArray = [];
-    for (let i = 1; i <= totalChunks; i++) {
-      const chunk = req.files[`chunk${i}`];
-      console.log(`Chunk ${i}`, chunk);
-      const response = await axios.get(chunkUrl, { responseType: 'blob' });
-      const chunkData = await response.data;
-      console.log(`Chunk ${i} data length:`, chunkData.length);
-      chunkDataArray.push(chunkData);
+    const filePath = path.join(tempChunkDirectory, fileName);
+    await chunk.mv(filePath);
+
+    const finalFilePath = path.join(__dirname, `../../uploads/${userId}/${fileName}`);
+
+    const finalFile = fs.createWriteStream(finalFilePath, { flags: 'a' });
+
+    await pipeline(fs.createReadStream(filePath), finalFile);
+
+    await fsPromises.rmdir(tempChunkDirectory, { recursive: true });
+
+    console.log('Chunk ' + chunkNumber + '/' + totalChunks + ' uploaded successfully:', fileName);
+
+    if (chunkNumber === totalChunks) {
+      console.log('All chunks uploaded successfully');
+
+      const existingFile = await File.findOne({ where: { filename: fileName } });
+
+      if (existingFile) {
+        console.log('File already exists. Updating record...');
+        await existingFile.update({
+          filename: fileName,
+          path: finalFilePath,
+          isPrivate: isPrivate,
+          fileType: 'png'
+        });
+      } else {
+        console.log('Creating file record...');
+        await File.create({
+          filename: fileName,
+          path: finalFilePath,
+          isPrivate: isPrivate,
+          fileType: 'png'
+        });
+      }
     }
-
-    // Concatenate all chunks
-    const concatenatedData = Buffer.concat(chunkDataArray);
-    console.log('Concatenated data length:', concatenatedData.length);
-
-    // Write concatenated data to the file
-    const filePath = path.join(userUploadDirectory, filename);
-    await fs.promises.writeFile(filePath, concatenatedData);
-
-    // Check if file exists after writing
-    const fileExists = await fs.promises.access(filePath, fs.constants.F_OK);
-    console.log('File exists after writing:', fileExists);
-
-    await File.create({
-      filename: filename,
-      path: filePath,
-      isPrivate: isPrivate,
-      fileType: 'png' 
-    });
-
-    console.log('File uploaded successfully:', filename);
 
     res.sendStatus(200);
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error uploading chunk:', error);
     res.status(500).send('Internal server error');
   }
 }

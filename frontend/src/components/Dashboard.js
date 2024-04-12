@@ -26,7 +26,7 @@ const Dashboard = () => {
   const fetchPublicFiles = async () => {
     try {
       const response = await getPublicFiles();
-      setPublicFiles(response.data);
+      setPublicFiles(response);
     } catch (error) {
       console.error('Error fetching public files:', error);
     }
@@ -35,7 +35,7 @@ const Dashboard = () => {
   const fetchPrivateFiles = async () => {
     try {
       const response = await getPrivateFiles();
-      setPrivateFiles(response.data);
+      setPrivateFiles(response);
     } catch (error) {
       console.error('Error fetching private files:', error);
     }
@@ -61,6 +61,14 @@ const Dashboard = () => {
     setIsLoggedIn(false);
   };
 
+  const handleLoginSuccess = () => {
+    setShowLoginForm(false);
+  };
+
+  const handleRegisterSuccess = () => {
+    setShowRegisterForm(false);
+  };
+
   return (
     <div>
       <h1>Dashboard</h1>
@@ -73,8 +81,8 @@ const Dashboard = () => {
       {isLoggedIn && <button onClick={handleLogout}>Logout</button>}
       {isLoggedIn && <button onClick={toggleUploadForm}>Upload File</button>}
       {isLoggedIn && showUploadForm && <UploadForm />}
-      {showLoginForm && <LoginForm />}
-      {showRegisterForm && <RegisterForm />}
+      {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} />}
+      {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} />}
       {isLoggedIn && <PrivateFiles files={privateFiles} />}
       <PublicFiles files={publicFiles} />
     </div>

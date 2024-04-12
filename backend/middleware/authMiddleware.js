@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; 
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ error: 'Token not provided' });
@@ -15,7 +15,7 @@ function authenticateToken(req, res, next) {
     req.user = decodedToken;
     console.log('decodedToken:', JSON.stringify(decodedToken));
 
-    
+
     next();
   });
 }

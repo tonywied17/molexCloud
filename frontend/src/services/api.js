@@ -30,7 +30,7 @@ export const loginUser = async ({ username, password }) => {
 
 export const getPublicFiles = async () => {
   try {
-    const response = await api.get('/files/public');
+    const response = await api.get('/files');
     return response.data;
   } catch (error) {
     throw error;
@@ -56,12 +56,15 @@ export const getPrivateFiles = async () => {
   }
 };
 
-export const uploadFileChunk = async (formData) => {
+export const uploadFileChunk = async (formData, isPrivate, totalChunks, chunkNumber) => {
   try {
     const response = await axios.post(`${API_URL}/files/upload/chunk`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        isPrivate: isPrivate.toString(),
+        totalChunks: totalChunks.toString(),
+        chunkNumber: chunkNumber.toString(),
       }
     });
     return response.data;

@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { registerUser } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext'; 
 
-const RegisterForm = () => {
+const RegisterForm = ({ onRegisterSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
@@ -13,6 +13,7 @@ const RegisterForm = () => {
       await registerUser({ username, password });
       setIsLoggedIn(true);
       alert('User registered successfully');
+      onRegisterSuccess();
     } catch (error) {
       console.error('Error registering user:', error);
     }

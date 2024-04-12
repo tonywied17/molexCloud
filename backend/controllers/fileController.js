@@ -4,7 +4,8 @@ const fsPromises = {
   ...fs,
   writeFile: promisify(fs.writeFile),
   mkdir: promisify(fs.mkdir),
-  rmdir: promisify(fs.rmdir)
+  rmdir: promisify(fs.rmdir),
+  unlink: promisify(fs.unlink) // Adding promisified unlink function
 };
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -34,7 +35,6 @@ async function getPrivateFiles(req, res) {
   }
 }
 
-//! Upload file chunk
 async function uploadFileChunk(req, res) {
   try {
     const isPrivate = req.headers.isprivate === 'true';
@@ -45,66 +45,79 @@ async function uploadFileChunk(req, res) {
     let chunk = req.files.chunk;
     const fileName = chunk.name;
 
+    const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
+
     const tempDirectory = path.join(__dirname, '../../uploads/temp');
     await fsPromises.mkdir(tempDirectory, { recursive: true });
+    const tempChunkDirectory = path.join(tempDirectory, `${userId}-${fileNameWithoutExtension}`);
 
-    const tempChunkDirectory = path.join(tempDirectory, uuidv4());
     await fsPromises.mkdir(tempChunkDirectory, { recursive: true });
 
-    const filePath = path.join(tempChunkDirectory, fileName);
+    const filePath = path.join(tempChunkDirectory, `${chunkNumber}.chunk`);
 
     await chunk.mv(filePath);
-
-    const finalFilePath = path.join(__dirname, `../../uploads/${userId}/${fileName}`);
-    await fsPromises.mkdir(path.dirname(finalFilePath), { recursive: true });
-    const finalFile = createWriteStream(finalFilePath, { flags: 'a' });
-
-    const readStream = createReadStream(filePath);
-    await pipeline(readStream, finalFile);
-
-    await fsPromises.rmdir(tempChunkDirectory, { recursive: true });
 
     console.log('Chunk ' + chunkNumber + '/' + totalChunks + ' uploaded successfully:', fileName);
 
     if (chunkNumber === totalChunks) {
       console.log('All chunks uploaded successfully');
 
-      const { fileTypeFromFile } = await import('file-type');
-      const type = await fileTypeFromFile(finalFilePath)
-      const fileTypeString = type ? (type.mime || type.ext || 'unknown') : 'unknown';
+      const finalDirectoryPath = path.join(__dirname, `../../uploads/${userId}`);
+      await fsPromises.mkdir(finalDirectoryPath, { recursive: true });
+      const finalFilePath = path.join(finalDirectoryPath, fileName);
 
-      console.log('File type:', fileTypeString);
+      const finalFileStream = fs.createWriteStream(finalFilePath, { flags: 'a' });
 
-      const existingFile = await File.findOne({ where: { filename: fileName } });
-      if (existingFile) {
-        console.log('File already exists. Updating record...');
-        await existingFile.update({
-          filename: fileName,
-          path: finalFilePath,
-          isPrivate: isPrivate,
-          fileType: fileTypeString
-        });
-      } else {
-        console.log('Creating file record...');
-        await File.create({
-          filename: fileName,
-          path: finalFilePath,
-          isPrivate: isPrivate,
-          fileType: fileTypeString
-        });
+
+      try {
+        for (let i = 1; i <= totalChunks; i++) {
+          const chunkPath = path.join(tempChunkDirectory, `${i}.chunk`);
+          console.log('Processing chunk:', chunkPath);
+          const readStream = fs.createReadStream(chunkPath);
+          await pipeline(readStream, finalFileStream);
+          console.log('Chunk processed:', chunkPath);
+        }        
+
+        finalFileStream.end();
+
+        await fsPromises.rmdir(tempChunkDirectory, { recursive: true });
+
+        console.log(`File ${fileName} assembled successfully`);
+
+        const existingFile = await File.findOne({ where: { filename: fileName } });
+        if (existingFile) {
+          console.log('File already exists. Updating record...');
+          await existingFile.update({
+            filename: fileName,
+            path: finalFilePath,
+            isPrivate: isPrivate,
+            fileType: fileTypeString
+          });
+        } else {
+          console.log('Creating file record...');
+          await File.create({
+            filename: fileName,
+            path: finalFilePath,
+            isPrivate: isPrivate,
+            fileType: fileTypeString
+          });
+        }
+
+        res.sendStatus(201);
+      } catch (error) {
+        console.error('Error during file assembly:', error);
+        res.status(500).send('Internal server error');
       }
+    } else {
+      res.sendStatus(200);
     }
 
-    if (chunkNumber != totalChunks) {
-      res.sendStatus(200);
-    } else {
-      res.sendStatus(201);
-    }
   } catch (error) {
     console.error('Error uploading chunk:', error);
     res.status(500).send('Internal server error');
   }
 }
+
 
 module.exports = {
   uploadFileChunk,

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { getPublicFiles, getPrivateFiles } from '../services/api';
 
 const UploadForm = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
@@ -63,7 +62,7 @@ const UploadForm = ({ onUploadSuccess }) => {
           totalBytesSent = resumeOffset;
           readChunk(resumeOffset);
         } else if (data.success) {
-          onUploadSuccess();
+          
           socket.close();
         } else if (data.error) {
           console.error('Error:', data.error);
@@ -79,8 +78,9 @@ const UploadForm = ({ onUploadSuccess }) => {
       readChunk();
     };
 
-    socket.onclose = () => {
+    socket.onclose = async () => {
       console.log('WebSocket connection closed');
+      await onUploadSuccess();
     };
   };
 

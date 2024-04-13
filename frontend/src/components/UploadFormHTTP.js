@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadFileChunk, getPublicFiles, getPrivateFiles } from '../services/api';
+import { uploadFileChunk } from '../services/api';
 
 const UploadFormHTTP = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);

@@ -45,7 +45,12 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({ error: 'Invalid message format: Metadata not received first' }));
         }
       } else {
-        handleFileUpload(ws, message);
+        if (Buffer.isBuffer(message)) {
+          handleFileUpload(ws, message);
+        } else {
+          console.error('Invalid message format: Expected file chunk');
+          ws.send(JSON.stringify({ error: 'Invalid message format: Expected file chunk' }));
+        }
       }
     } catch (error) {
       console.error('Error parsing message:', error);

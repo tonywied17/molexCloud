@@ -70,9 +70,11 @@ const Dashboard = () => {
   const fetchFiles = async () => {
     try {
       const publicFilesResponse = await getPublicFiles();
+      console.log(publicFilesResponse);
       setPublicFiles(publicFilesResponse);
       if (isLoggedIn) {
         const privateFilesResponse = await getPrivateFiles();
+        console.log(privateFilesResponse);
         setPrivateFiles(privateFilesResponse);
       }
     } catch (error) {

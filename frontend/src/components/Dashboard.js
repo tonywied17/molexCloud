@@ -3,6 +3,7 @@ import PublicFiles from './PublicFiles';
 import RegisterForm from './RegisterForm';
 import LoginForm from './LoginForm';
 import UploadForm from './UploadForm';
+import UploadFormHTTP from './UploadFormHTTP';
 import PrivateFiles from './PrivateFiles';
 import { getPublicFiles, getPrivateFiles } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showUploadFormHTTP, setShowUploadFormHTTP] = useState(false);
 
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 
@@ -44,6 +46,12 @@ const Dashboard = () => {
 
   const toggleUploadForm = () => {
     setShowUploadForm(!showUploadForm);
+    setShowUploadFormHTTP(false);
+  };
+
+  const toggleUploadFormHTTP = () => {
+    setShowUploadFormHTTP(!showUploadFormHTTP);
+    setShowUploadForm(false);
   };
 
   const handleLogout = () => {
@@ -74,6 +82,7 @@ const Dashboard = () => {
 
   const handleUploadSuccess = async () => {
     setShowUploadForm(false); 
+    setShowUploadFormHTTP(false);
     await fetchFiles();
   };
 
@@ -87,8 +96,10 @@ const Dashboard = () => {
         </>
       )}
       {isLoggedIn && <button onClick={handleLogout}>Logout</button>}
-      {isLoggedIn && <button onClick={toggleUploadForm}>Upload File</button>}
+      {isLoggedIn && <button onClick={toggleUploadForm}>Upload File via Socket</button>}
+      {isLoggedIn && <button onClick={toggleUploadFormHTTP}>Upload File via HTTP</button>}
       {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} />}
+      {isLoggedIn && showUploadFormHTTP && <UploadFormHTTP onUploadSuccess={handleUploadSuccess} />}
       {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} />}
       {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} />}
       {isLoggedIn && <PrivateFiles files={privateFiles} />}

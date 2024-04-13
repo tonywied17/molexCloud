@@ -21,7 +21,8 @@ const upload = multer({
   limits: { fileSize: Infinity }, 
 });
 
-router.post('/upload/chunk', authenticateToken, upload.single('chunk'), fileController.uploadFileChunk);
+// Upload file route for HTTP requests
+router.post('/upload/chunk', authenticateToken, upload.single('chunk'), fileController.uploadFileChunkHTTP);
 
 // Protected route for fetching private files
 router.get('/private', authenticateToken, fileController.getPrivateFiles);

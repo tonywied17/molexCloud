@@ -13,6 +13,7 @@ const File = require('../models/File');
 const { pipeline } = require('stream/promises');
 const { createReadStream, createWriteStream } = require('fs');
 
+
 //! Get all files excluding private files
 async function getAllFiles(req, res) {
   try {
@@ -36,12 +37,13 @@ async function getPrivateFiles(req, res) {
 }
 
 //! Upload file chunk
-async function uploadFileChunk(req, res) {
+async function uploadFileChunkHTTP(req, res) {
   try {
     const isPrivate = req.headers.isprivate === 'true';
     const totalChunks = parseInt(req.headers.totalchunks);
     const chunkNumber = parseInt(req.headers.chunknumber);
-    const userId = req.user.userId.toString();
+    // const userId = req.user.userId.toString();
+    const userId = randomString();
 
     let chunk = req.files.chunk;
     const fileName = chunk.name;
@@ -123,9 +125,12 @@ async function uploadFileChunk(req, res) {
   }
 }
 
+function randomString() {
+  return Math.random().toString(36).substring(2, 7);
+}
 
 module.exports = {
-  uploadFileChunk,
+  uploadFileChunkHTTP,
   getAllFiles,
   getPrivateFiles
 };

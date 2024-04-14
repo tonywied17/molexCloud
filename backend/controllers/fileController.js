@@ -8,17 +8,28 @@ const fsPromises = {
   unlink: promisify(fs.unlink)
 };
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 const File = require('../models/File');
 const { pipeline } = require('stream/promises');
-const { createReadStream, createWriteStream } = require('fs');
-
+const { authenticateToken } = require('../middleware/authMiddleware');
+const Sequelize = require('sequelize');
 
 //! Get all files excluding private files
 async function getAllFiles(req, res) {
   try {
-    const files = await File.findAll({ where: { isPrivate: false } });
-    res.json(files);
+    const publicFiles = await File.findAll({ where: { isPrivate: false } });
+
+    const publicFileTypesCounts = await File.findAll({
+      attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
+      where: { isPrivate: false },
+      group: ['fileType']
+    });
+
+    let fileTypeCountsObject = {};
+    publicFileTypesCounts.forEach(file => {
+      fileTypeCountsObject[file.fileType] = file.get('count');
+    });
+
+    res.json({ files: publicFiles, fileTypeCounts: fileTypeCountsObject });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -28,15 +39,69 @@ async function getAllFiles(req, res) {
 //! Get all private files
 async function getPrivateFiles(req, res) {
   try {
-    const files = await File.findAll({ where: { isPrivate: true } });
-    res.json(files || []);
+    const privateFiles = await File.findAll({ where: { isPrivate: true } });
+
+    const privateFileTypesCounts = await File.findAll({
+      attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
+      where: { isPrivate: true },
+      group: ['fileType']
+    });
+
+    let fileTypeCountsObject = {};
+    privateFileTypesCounts.forEach(file => {
+      fileTypeCountsObject[file.fileType] = file.get('count');
+    });
+
+    res.json({ files: privateFiles, fileTypeCounts: fileTypeCountsObject });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-//! Upload file chunk
+//! Get unique file types and their counts
+async function getFileTypesCounts(req, res) {
+  try {
+    let fileTypeCountsObject = {};
+
+    if (req.headers.authorization) {
+      authenticateToken(req, res, async () => {
+        try {
+          const fileTypesCounts = await File.findAll({
+            attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
+            group: ['fileType']
+          });
+
+          fileTypesCounts.forEach(file => {
+            fileTypeCountsObject[file.fileType] = file.get('count');
+          });
+
+          res.json(fileTypeCountsObject);
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      });
+    } else {
+      const publicFileTypesCounts = await File.findAll({
+        attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
+        where: { isPrivate: false },
+        group: ['fileType']
+      });
+
+      publicFileTypesCounts.forEach(file => {
+        fileTypeCountsObject[file.fileType] = file.get('count');
+      });
+
+      res.json(fileTypeCountsObject);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+//! Upload file chunk via HTTP
 async function uploadFileChunkHTTP(req, res) {
   try {
     const isPrivate = req.headers.isprivate === 'true';
@@ -125,6 +190,51 @@ async function uploadFileChunkHTTP(req, res) {
   }
 }
 
+//! Download a file
+async function downloadFile(req, res) {
+  try {
+    const fileId = req.params.id;
+    const file = await File.findByPk(fileId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const filePath = file.path;
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found on server' });
+    }
+
+    const contentType = file.fileType || 'application/octet-stream';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('X-Filename', file.filename);
+
+    if (file.isPrivate) {
+      const token = req.headers.authorization;
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized: Token missing' });
+      }
+      try {
+        await authenticateToken(req, res, async () => {
+          const fileStream = fs.createReadStream(filePath);
+          fileStream.pipe(res);
+        });
+      } catch (error) {
+        console.error('Token authentication failed:', error);
+        return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+      }
+    } else {
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// Helper function to generate random string
 function randomString() {
   return Math.random().toString(36).substring(2, 7);
 }
@@ -132,5 +242,7 @@ function randomString() {
 module.exports = {
   uploadFileChunkHTTP,
   getAllFiles,
-  getPrivateFiles
+  getPrivateFiles,
+  getFileTypesCounts,
+  downloadFile
 };

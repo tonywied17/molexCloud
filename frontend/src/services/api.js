@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+//! API Configuration
 const API_URL = 'http://localhost:3222/api';
 const api = axios.create({
   baseURL: API_URL,
@@ -8,6 +9,7 @@ const api = axios.create({
   },
 });
 
+//! Register user
 export const registerUser = async ({ username, password }) => {
   try {
     const response = await api.post('/auth/register', { username, password });
@@ -18,7 +20,7 @@ export const registerUser = async ({ username, password }) => {
   }
 };
 
-
+//! Login user
 export const loginUser = async ({ username, password }) => {
   try {
     const response = await api.post('/auth/login', { username, password });
@@ -28,7 +30,7 @@ export const loginUser = async ({ username, password }) => {
   }
 };
 
-
+//! Get public files
 export const getPublicFiles = async () => {
   try {
     const response = await api.get('/files');
@@ -38,6 +40,7 @@ export const getPublicFiles = async () => {
   }
 };
 
+//! Get private files
 export const getPrivateFiles = async () => {
   try {
     const token = localStorage.getItem('token');
@@ -56,6 +59,7 @@ export const getPrivateFiles = async () => {
   }
 };
 
+//! Upload file via HTTP
 export const uploadFileChunk = async (formData, isPrivate, totalChunks, chunkNumber) => {
   try {
     const response = await axios.post(`${API_URL}/files/upload/chunk`, formData, {
@@ -72,3 +76,51 @@ export const uploadFileChunk = async (formData, isPrivate, totalChunks, chunkNum
     throw error;
   }
 };
+
+//! Get file types and their counts
+export const getFileTypesCounts = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await api.get('/files/filetypes', { headers });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Download file
+export const downloadFile = async (fileId, fileName) => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await api.get(`/files/download/${fileId}`, {
+      responseType: 'blob',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const url = window.URL.createObjectURL(response.data);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+

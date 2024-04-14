@@ -4,10 +4,16 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 const fileController = require('../controllers/fileController');
 const multer = require('multer');
 
-// UnProtected route for fetching files
+//! UnProtected route for fetching files
 router.get('/', fileController.getAllFiles);
 
-// Protected route for uploading files
+//! Protected route for fetching private files
+router.get('/private', authenticateToken, fileController.getPrivateFiles);
+
+//! Add route to get unique file types and their counts
+router.get('/filetypes', fileController.getFileTypesCounts);
+
+//? Multer configuration for file upload via HTTP
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
@@ -20,11 +26,10 @@ const upload = multer({
   }),
   limits: { fileSize: Infinity }, 
 });
-
-// Upload file route for HTTP requests
+//! Protected route for uploading files via HTTP
 router.post('/upload/chunk', authenticateToken, upload.single('chunk'), fileController.uploadFileChunkHTTP);
 
-// Protected route for fetching private files
-router.get('/private', authenticateToken, fileController.getPrivateFiles);
+//! Route to download a file
+router.get('/download/:id', fileController.downloadFile);
 
 module.exports = router;

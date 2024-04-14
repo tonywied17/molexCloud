@@ -63,7 +63,7 @@ const UploadForm = ({ onUploadSuccess }) => {
           totalBytesSent = resumeOffset;
           readChunk(resumeOffset);
         } else if (data.success) {
-          
+
           socket.close();
         } else if (data.error) {
           console.error('Error:', data.error);
@@ -87,14 +87,21 @@ const UploadForm = ({ onUploadSuccess }) => {
 
   return (
     <div>
-      <h2>Upload File via Socket</h2>
-      <input type="file" onChange={handleFileChange} />
-      <label>
-        Is Private:
-        <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
-      </label>
-      <button onClick={handleUpload}>Upload</button>
-      {progress > 0 && <div>Progress: {progress}%</div>}
+      <h2>Socket Upload</h2>
+      <div className='uploadFormDiv'>
+        <div>
+          <input type="file" className='fileInput' onChange={handleFileChange} />
+          <button className='button' onClick={() => document.querySelector('input[type="file"]').click()}>Select File</button>
+          {progress > 0 && <div>Progress: {progress}%</div>}
+        </div>
+        <div className='uploadControlsDiv'>
+          <label>
+            Is Private:
+            <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
+          </label>
+          <button className='button' onClick={handleUpload}>Upload</button>
+        </div>
+      </div>
     </div>
   );
 };

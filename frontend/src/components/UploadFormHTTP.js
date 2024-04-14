@@ -64,13 +64,20 @@ const UploadFormHTTP = ({ onUploadSuccess }) => {
 
   return (
     <div>
-      <h2>Upload File via HTTP</h2>
-      <input type="file" onChange={handleFileChange} />
-      <label>
-        Is Private:
-        <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
-      </label>
-      <button onClick={handleUpload}>Upload</button>
+      <h2>HTTP Upload</h2>
+      <div className='uploadFormDiv'>
+        <div>
+          <input type="file" className='fileInput' onChange={handleFileChange} />
+          <button className='button' onClick={() => document.querySelector('input[type="file"]').click()}>Select File</button>
+        </div>
+        <div className='uploadControlsDiv'>
+          <label>
+            Is Private:
+            <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
+          </label>
+          <button className='button' onClick={handleUpload}>Upload</button>
+        </div>
+      </div>
     </div>
   );
 };

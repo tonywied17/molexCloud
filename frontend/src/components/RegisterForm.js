@@ -23,19 +23,25 @@ const RegisterForm = ({ onRegisterSuccess }) => {
 
   return (
     <div>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label>
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        <button type="submit">Register</button>
-      </form>
+
+      <div className='authFormContainer'>
+    
+          <form className='authFormFields' onSubmit={handleSubmit}>
+          <div>Create an account...</div>
+            <div className='inputField'>
+              <label>Username:</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </div>
+            <div className='inputField'>
+              <label>Password:</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <button className='button' type="submit">Register</button>
+          </form>
+     
+      </div>
     </div>
+
   );
 };
 

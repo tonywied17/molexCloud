@@ -1,9 +1,35 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import "https://fonts.googleapis.com/icon?family=Material+Icons";
+.material-icons {
+  font-size: 24px;
+  font-family: "Material Icons", "Material Icons";
+}
+
+@media only screen and (max-width: 1024px) {
+  .logo {
+    width: 310px;
+  }
+
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: radial-gradient(circle, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 100%);
+  font-family: "Noto Sans", sans-serif;
+}
+
 .filesContainer {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  min-width: 70vw;
+  margin-top: 2em;
+  position: relative;
 }
+
 .App {
   display: flex;
   flex-direction: column;
@@ -18,6 +44,274 @@
   justify-content: flex-end;
 }
 
-h2{
+h2 {
   margin-bottom: 0;
+}
+
+#logo {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 20px;
+  position: relative;
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 3rem;
+  color: #b3b3b3;
+  font-style: italic;
+  margin: 0.8em 0;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  filter: brightness(1.5);
+}
+
+.navButtons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.dashButtons {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  z-index: 1;
+}
+
+.button {
+  background-color: #000000c2;
+  border-radius: 3px;
+  border: 1px solid #b3b3b357;
+  box-shadow: #969696 -1px -1px 0px 0 inset;
+  box-sizing: border-box;
+  color: #b3b3b3;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15385;
+  margin: 0;
+  outline: none;
+  padding: 8px 0.8em;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.button:hover,
+.button:focus {
+  background-color: #cfcfcf8e;
+  color: #000000;
+}
+
+.button:focus {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
+}
+
+.button:active {
+  box-shadow: none;
+  transform: translateY(5px);
+}
+
+@keyframes clouds-loop-1 {
+  to {
+    background-position: -1000px 0;
+  }
+}
+
+.clouds-1 {
+  background-image: url("../public/assets/clouds_2.webp");
+  animation: clouds-loop-1 20s infinite linear;
+}
+
+@keyframes clouds-loop-2 {
+  to {
+    background-position: -1000px 0;
+  }
+}
+
+.clouds-2 {
+  background-image: url("../public/assets/clouds_1.webp");
+  animation: clouds-loop-2 15s infinite linear;
+}
+
+@keyframes clouds-loop-3 {
+  to {
+    background-position: -1579px 0;
+  }
+}
+
+.clouds-3 {
+  background-image: url("../public/assets/clouds_3.png");
+  animation: clouds-loop-3 17s infinite linear;
+}
+
+.clouds {
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=40);
+  opacity: 0.4;
+  pointer-events: none;
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+}
+
+.clouds-1,
+.clouds-2,
+.clouds-3 {
+  background-repeat: repeat-x;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 500px;
+}
+
+@keyframes lightning-strike {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.5;
+  }
+  10% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.5;
+  }
+  30% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.lightning {
+  left: 0;
+  top: 0;
+  position: fixed;
+  width: 50%;
+  height: 50%;
+  background: url("../public/assets/lightning.png") no-repeat;
+  background-size: contain;
+  animation: lightning-strike 10s infinite 3s;
+}
+
+.uploadFormDiv {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  margin: 1em;
+  padding: 0.5em;
+  gap: 10px;
+  align-items: center;
+  background: #000000c2;
+  align-content: space-between;
+  justify-content: space-between;
+}
+
+.uploadControlsDiv {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+}
+
+.fileInput {
+  display: none;
+}
+
+
+.fileDetailsBox{
+  display: flex; 
+  flex-direction: column;
+  min-width: 70vw; 
+  padding: 10px;
+  border-radius: 3px;
+  border: 1px solid #b3b3b357;
+  box-shadow: #969696 -1px -1px 0px 0 inset;
+}
+
+.filesHeader{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filesHeaderText {
+  font-weight: 700;
+  font-size: 1.5em;
+}
+
+.fileTypesContainer{
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  margin: 1em 0;
+}
+
+.authFormContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 2em;
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  min-width: 425px;
+}
+
+.authFormFields {
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+  padding: 1em;
+  gap: 10px;
+  border-radius: 3px;
+  width: 100%;
+  border: 1px solid #b3b3b357;
+  box-shadow: #969696 -1px -1px 0px 0 inset;
+}
+
+.inputField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }

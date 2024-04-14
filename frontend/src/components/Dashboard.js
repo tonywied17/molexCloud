@@ -88,20 +88,35 @@ const Dashboard = () => {
     setTimeout(async () => {
       await fetchFiles();
     }, 300);
-  };  
+  };
 
   return (
+
+
     <div>
-      <h1>Dashboard</h1>
-      {!isLoggedIn && (
-        <>
-          <button onClick={toggleLoginForm}>Login</button>
-          <button onClick={toggleRegisterForm}>Register</button>
-        </>
-      )}
-      {isLoggedIn && <button onClick={handleLogout}>Logout</button>}
-      {isLoggedIn && <button onClick={toggleUploadForm}>Upload File via Socket</button>}
-      {isLoggedIn && <button onClick={toggleUploadFormHTTP}>Upload File via HTTP</button>}
+      <div className='clouds'>
+        <div className='clouds-1'></div>
+        <div className='clouds-2'></div>
+        <div className='clouds-3'></div>
+      </div>
+      <div className='lightning'></div>
+      <div id='logo'>
+        <div class='logo'>Molex.cloud</div>
+        <div className='navButtons'>
+          {!isLoggedIn && (
+            <>
+              <button className='button' onClick={toggleLoginForm}>Login</button>
+              <button className='button' onClick={toggleRegisterForm}>Register</button>
+            </>
+          )}
+          {isLoggedIn && <button className='button' onClick={handleLogout}>Logout</button>}
+        </div>
+      </div>
+
+      <div className='dashButtons'>
+        {isLoggedIn && <button className='button' onClick={toggleUploadForm}>Upload File via Socket</button>}
+        {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>Upload File via HTTP</button>}
+      </div>
       {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} />}
       {isLoggedIn && showUploadFormHTTP && <UploadFormHTTP onUploadSuccess={handleUploadSuccess} />}
       {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} />}

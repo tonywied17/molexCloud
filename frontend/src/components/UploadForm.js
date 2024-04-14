@@ -25,12 +25,13 @@ const UploadForm = ({ onUploadSuccess }) => {
       const metadata = {
         filename: file.name,
         size: file.size,
-        isPrivate: isPrivate
+        mimeType: file.type,
+        isPrivate: isPrivate,
       };
       socket.send(JSON.stringify({ type: 'file_upload_metadata', payload: metadata }));
 
       const reader = new FileReader();
-      const chunkSize = 10 * 1024 * 1024;
+      const chunkSize = 1024 * 1024;
       let offset = 0;
 
       reader.onload = () => {

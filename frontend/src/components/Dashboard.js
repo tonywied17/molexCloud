@@ -83,10 +83,12 @@ const Dashboard = () => {
   };
 
   const handleUploadSuccess = async () => {
-    setShowUploadForm(false); 
+    setShowUploadForm(false);
     setShowUploadFormHTTP(false);
-    await fetchFiles();
-  };
+    setTimeout(async () => {
+      await fetchFiles();
+    }, 300);
+  };  
 
   return (
     <div>

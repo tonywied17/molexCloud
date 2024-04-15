@@ -15,6 +15,13 @@ require('dotenv').config();
 /**
  * * --- Express Server ---
  */
+// ? SSL certificate paths
+const privateKeyPath = path.resolve(__dirname, 'live/molex.cloud/privkey.pem');
+const certificatePath = path.resolve(__dirname, 'live/molex.cloud/fullchain.pem');
+const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+const certificate = fs.readFileSync(certificatePath, 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
 const app = express();
 const PORT = process.env.PORT || 3222;
 
@@ -67,13 +74,6 @@ app.use(fileUpload(
 /**
  * * --- Websocket server ---
  */
-// ? SSL certificate paths
-const privateKeyPath = path.resolve(__dirname, 'live/molex.cloud/privkey.pem');
-const certificatePath = path.resolve(__dirname, 'live/molex.cloud/fullchain.pem');
-const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
-const certificate = fs.readFileSync(certificatePath, 'utf8');
-const credentials = { key: privateKey, cert: certificate };
-
 //! Websocket server
 const wss = new WebSocket.Server({ server: httpsServer });
 const activeSessions = new Map();

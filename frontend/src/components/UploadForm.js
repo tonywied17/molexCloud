@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, forwardRef } from 'react';
 
-const UploadForm = ({ onUploadSuccess }) => {
+const UploadForm = forwardRef(({ onUploadSuccess }, ref) => {
   const [file, setFile] = useState(null);
   const [isPrivate, setIsPrivate] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -38,9 +38,10 @@ const UploadForm = ({ onUploadSuccess }) => {
   
       reader.onload = () => {
         const chunk = reader.result;
-        socket.send(chunk);
+        
         totalBytesSent += chunk.byteLength;
-  
+        socket.send(chunk);
+
         offset += chunkSize;
         if (offset < file.size) {
           let progress = Math.round((totalBytesSent / file.size) * 100);
@@ -89,7 +90,7 @@ const UploadForm = ({ onUploadSuccess }) => {
 
   return (
     <div>
-      <div className='uploadFormDiv'>
+      <div ref={ref} className='uploadFormDiv'>
         <div className='modalTitle'>Socket Upload</div>
         <div className='uploadFormFields'>
 
@@ -107,6 +108,6 @@ const UploadForm = ({ onUploadSuccess }) => {
       </div>
     </div>
   );
-};
+});
 
 export default UploadForm;

@@ -1,8 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, forwardRef } from 'react';
 import { loginUser } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 
-const LoginForm = ({ onLoginSuccess }) => {
+const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
@@ -22,26 +22,22 @@ const LoginForm = ({ onLoginSuccess }) => {
 
   return (
     <div>
-
-      <div className='authFormContainer'>
-    
-          <form className='authFormFields' onSubmit={handleSubmit}>
+      <div ref={ref} className='authFormContainer'>
+        <form className='authFormFields' onSubmit={handleSubmit}>
           <div>Logging back in...</div>
-            <div className='inputField'>
-              <label>Username:</label>
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-            </div>
-            <div className='inputField'>
-              <label>Password:</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            </div>
-            <button className='button' type="submit">Login</button>
-          </form>
-     
+          <div className='inputField'>
+            <label>Username:</label>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+          </div>
+          <div className='inputField'>
+            <label>Password:</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <button className='button' type="submit">Login</button>
+        </form>
       </div>
     </div>
-
   );
-};
+});
 
 export default LoginForm;

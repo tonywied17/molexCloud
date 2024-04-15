@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import PublicFiles from './PublicFiles';
 import RegisterForm from './RegisterForm';
 import LoginForm from './LoginForm';
@@ -10,10 +10,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import PowerIcon from '@mui/icons-material/Power';
-import HttpIcon from '@mui/icons-material/Http';
 import LanguageIcon from '@mui/icons-material/Language';
 import AddIcon from '@mui/icons-material/Add';
-
 
 const Dashboard = () => {
   const [publicFiles, setPublicFiles] = useState([]);
@@ -25,6 +23,11 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('public');
 
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+
+  const loginFormRef = useRef(null);
+  const registerFormRef = useRef(null);
+  const uploadFormRef = useRef(null);
+  const uploadFormHTTPRef = useRef(null);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -41,6 +44,32 @@ const Dashboard = () => {
       .then(response => setPublicFiles(response))
       .catch(error => console.error('Error fetching public files:', error));
   }, []);
+
+  useEffect(() => {
+    console.log('Effect triggered');
+    const handleOutsideClick = (event) => {
+      const formRefsValues = [loginFormRef, registerFormRef, uploadFormRef, uploadFormHTTPRef];
+      const isAnyFormOpen = showLoginForm || showRegisterForm || showUploadForm || showUploadFormHTTP;
+    
+      if (isAnyFormOpen) {
+        const isClickInsideForm = formRefsValues.some((ref) => {
+          return ref.current && (ref.current.contains(event.target) || ref.current === event.target);
+        });
+    
+        if (!isClickInsideForm) {
+          setShowLoginForm(false);
+          setShowRegisterForm(false);
+          setShowUploadForm(false);
+          setShowUploadFormHTTP(false);
+        }
+      }
+    };
+    
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [showLoginForm, showRegisterForm, showUploadForm, showUploadFormHTTP]);
 
   const toggleLoginForm = () => {
     setShowLoginForm(!showLoginForm);
@@ -106,9 +135,9 @@ const Dashboard = () => {
       <div className='lightning'></div>
       <div id='logo'>
         <div className='logo'>
-        <img className='logoImg' src='assets/cloud.png'></img>
+          <img className='logoImg' src='assets/cloud.png' alt="Molex.Cloud"></img>
           Molex.cloud
-          </div>
+        </div>
         <div className='navButtons'>
           {!isLoggedIn && (
             <>
@@ -125,13 +154,11 @@ const Dashboard = () => {
         {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>HTTP Upload<LanguageIcon /> </button>}
       </div>
 
-      {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} />}
-      {isLoggedIn && showUploadFormHTTP && <UploadFormHTTP onUploadSuccess={handleUploadSuccess} />}
+      {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} ref={uploadFormRef} />}
+      {isLoggedIn && showUploadFormHTTP && <UploadFormHTTP onUploadSuccess={handleUploadSuccess} ref={uploadFormHTTPRef} />}
 
-      {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} />}
-      {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} />}
-
-
+      {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} ref={loginFormRef} />}
+      {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} ref={registerFormRef} />}
 
       <div className='filesContainer'>
         <div className='dashTabs'>

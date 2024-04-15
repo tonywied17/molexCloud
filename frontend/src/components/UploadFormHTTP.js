@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { uploadFileChunk } from '../services/api';
 
-const UploadFormHTTP = ({ onUploadSuccess }) => {
+const UploadFormHTTP = forwardRef(({ onUploadSuccess }, ref) => {
   const [file, setFile] = useState(null);
   const [isPrivate, setIsPrivate] = useState(false);
   const [progress, setProgress] = useState(0);
+
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -69,25 +70,22 @@ const UploadFormHTTP = ({ onUploadSuccess }) => {
   }
 
   return (
-    <div>
-      <div className='uploadFormDiv'>
+    <div ref={ref} className='uploadFormDiv'>
       <div className='modalTitle'>HTTP Upload</div>
-        <div className='uploadFormFields'>
-          
-          <input type="file" className='fileInput' onChange={handleFileChange} />
-          <button className='button' onClick={() => document.querySelector('input[type="file"]').click()}>Select File</button>
-          {progress > 0 && <div>Progress: {progress}%</div>}
-        </div>
-        <div className='uploadControlsDiv'>
-          <label>
-            Is Private:
-            <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
-          </label>
-          <button className='button' style={{width: '100%'}} onClick={handleUpload}>Upload</button>
-        </div>
+      <div className='uploadFormFields'>
+        <input type="file" className='fileInput' onChange={handleFileChange} />
+        <button className='button' onClick={() => document.querySelector('input[type="file"]').click()}>Select File</button>
+        {progress > 0 && <div>Progress: {progress}%</div>}
+      </div>
+      <div className='uploadControlsDiv'>
+        <label>
+          Is Private:
+          <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
+        </label>
+        <button className='button' style={{ width: '100%' }} onClick={handleUpload}>Upload</button>
       </div>
     </div>
   );
-};
+});
 
 export default UploadFormHTTP;

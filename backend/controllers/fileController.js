@@ -7,17 +7,17 @@ const fsPromises = {
   rmdir: promisify(fs.rmdir),
   unlink: promisify(fs.unlink)
 };
+const Sequelize = require('sequelize');
 const path = require('path');
 const File = require('../models/File');
 const { pipeline } = require('stream/promises');
 const { authenticateToken } = require('../middleware/authMiddleware');
-const Sequelize = require('sequelize');
 
-//! Get all files excluding private files
+
+//! Get all public files
 async function getAllFiles(req, res) {
   try {
     const publicFiles = await File.findAll({ where: { isPrivate: false } });
-
     const publicFileTypesCounts = await File.findAll({
       attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
       where: { isPrivate: false },
@@ -30,6 +30,7 @@ async function getAllFiles(req, res) {
     });
 
     res.json({ files: publicFiles, fileTypeCounts: fileTypeCountsObject });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -40,19 +41,20 @@ async function getAllFiles(req, res) {
 async function getPrivateFiles(req, res) {
   try {
     const privateFiles = await File.findAll({ where: { isPrivate: true } });
-
     const privateFileTypesCounts = await File.findAll({
       attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
       where: { isPrivate: true },
       group: ['fileType']
     });
 
+    // ? Get file type counts
     let fileTypeCountsObject = {};
     privateFileTypesCounts.forEach(file => {
       fileTypeCountsObject[file.fileType] = file.get('count');
     });
 
     res.json({ files: privateFiles, fileTypeCounts: fileTypeCountsObject });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -64,6 +66,7 @@ async function getFileTypesCounts(req, res) {
   try {
     let fileTypeCountsObject = {};
 
+    // ? Authenticated Request - Include private and public files
     if (req.headers.authorization) {
       authenticateToken(req, res, async () => {
         try {
@@ -71,29 +74,31 @@ async function getFileTypesCounts(req, res) {
             attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
             group: ['fileType']
           });
-
           fileTypesCounts.forEach(file => {
             fileTypeCountsObject[file.fileType] = file.get('count');
           });
 
           res.json(fileTypeCountsObject);
+
         } catch (error) {
           console.error(error);
           res.status(500).json({ error: 'Internal server error' });
         }
       });
+
+    // ? Public Request - Exclude private files
     } else {
       const publicFileTypesCounts = await File.findAll({
         attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
         where: { isPrivate: false },
         group: ['fileType']
       });
-
       publicFileTypesCounts.forEach(file => {
         fileTypeCountsObject[file.fileType] = file.get('count');
       });
 
       res.json(fileTypeCountsObject);
+
     }
   } catch (error) {
     console.error(error);
@@ -108,20 +113,17 @@ async function uploadFileChunkHTTP(req, res) {
     const totalChunks = parseInt(req.headers.totalchunks);
     const chunkNumber = parseInt(req.headers.chunknumber);
     const userId = req.user.userId.toString();
-
-    let chunk = req.files.chunk;
     const fileName = chunk.name;
+    let chunk = req.files.chunk;
 
     const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
-
     const tempDirectory = path.join(__dirname, '../../uploads/temp');
     await fsPromises.mkdir(tempDirectory, { recursive: true });
-    const tempChunkDirectory = path.join(tempDirectory, `${userId}-${fileNameWithoutExtension}`);
 
+    const tempChunkDirectory = path.join(tempDirectory, `${userId}-${fileNameWithoutExtension}`);
     await fsPromises.mkdir(tempChunkDirectory, { recursive: true });
 
     const filePath = path.join(tempChunkDirectory, `${chunkNumber}.chunk`);
-
     await chunk.mv(filePath);
 
     console.log('Chunk ' + chunkNumber + '/' + totalChunks + ' uploaded successfully:', fileName);
@@ -131,10 +133,9 @@ async function uploadFileChunkHTTP(req, res) {
 
       const finalDirectoryPath = path.join(__dirname, `../../uploads/${userId}`);
       await fsPromises.mkdir(finalDirectoryPath, { recursive: true });
+
       const finalFilePath = path.join(finalDirectoryPath, fileName);
-
       const finalFileStream = fs.createWriteStream(finalFilePath, { flags: 'a' });
-
 
       try {
         for (let i = 1; i <= totalChunks; i++) {
@@ -148,9 +149,9 @@ async function uploadFileChunkHTTP(req, res) {
         finalFileStream.end();
 
         await fsPromises.rmdir(tempChunkDirectory, { recursive: true });
-
         console.log(`File ${fileName} assembled successfully`);
 
+        // ? Insert or update file record in database
         const { fileTypeFromFile } = await import('file-type');
         const type = await fileTypeFromFile(finalFilePath)
         const fileTypeString = type ? (type.mime || type.ext || 'unknown') : 'unknown';
@@ -174,13 +175,18 @@ async function uploadFileChunkHTTP(req, res) {
           });
         }
 
+        // ? Send 201 if last chunk
         res.sendStatus(201);
+
       } catch (error) {
         console.error('Error during file assembly:', error);
         res.status(500).send('Internal server error');
       }
     } else {
+
+      // ? Send 200 for chunk upload if not the last chunk
       res.sendStatus(200);
+
     }
 
   } catch (error) {
@@ -194,13 +200,11 @@ async function downloadFile(req, res) {
   try {
     const fileId = req.params.id;
     const file = await File.findByPk(fileId);
-
     if (!file) {
       return res.status(404).json({ error: 'File not found' });
     }
-
+    
     const filePath = file.path;
-
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'File not found on server' });
     }
@@ -209,6 +213,7 @@ async function downloadFile(req, res) {
     res.setHeader('Content-Type', contentType);
     res.setHeader('X-Filename', file.filename);
 
+    // ? Private file - Authenticate token
     if (file.isPrivate) {
       const token = req.headers.authorization;
       if (!token) {
@@ -223,6 +228,7 @@ async function downloadFile(req, res) {
         console.error('Token authentication failed:', error);
         return res.status(401).json({ error: 'Unauthorized: Invalid token' });
       }
+    // ? Public file - No authentication required
     } else {
       const fileStream = fs.createReadStream(filePath);
       fileStream.pipe(res);
@@ -231,11 +237,6 @@ async function downloadFile(req, res) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
-
-// Helper function to generate random string
-function randomString() {
-  return Math.random().toString(36).substring(2, 7);
 }
 
 module.exports = {

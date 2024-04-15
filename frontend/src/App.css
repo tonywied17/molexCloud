@@ -1,27 +1,63 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
-@import "https://fonts.googleapis.com/icon?family=Material+Icons";
-.material-icons {
-  font-size: 24px;
-  font-family: "Material Icons", "Material Icons";
-}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @media only screen and (max-width: 1024px) {
   .logo {
     width: 310px;
-    margin: 0.2em 0 !important;
-    font-size: 2.5rem !important;
+    margin: 27px 0em !important;
+    font-size: 1.5rem !important;
     align-self: center;
+    flex-direction: column !important;
+  }
+  .logoImg{
+    height: 50px !important;
   }
   .dashboardContainer {
     width: 90vw !important;
   }
   #logo {
     flex-direction: column !important;
-    align-items: end !important;
+    align-items: center !important;
     margin-top: 0 !important;
     position: relative;
     margin-bottom: 2em;
+  }
+  .authFormContainer {
+    min-width: 300px !important;
+    width: 90vw;
+  }
+  .uploadFormDiv {
+    min-width: 300px !important;
+    width: 90vw !important;
+    top: 45% !important;
+    background: #060606f0 !important;
+  }
+  .filesHeader {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .fileTypesContainer {
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+  .dashButtons {
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  .dashTabs{
+    margin-top: 1em !important;
+    justify-content: center !important;
+  }
+  .dashTabs button{
+    font-size: 1em !important;
+  }
+  .tabsContent{
+    border-top-left-radius: 5px;
+  }
+  .button {
+    font-size: 1rem !important;
+    padding: 10px 0.8em !important;
   }
 }
 
@@ -34,8 +70,8 @@
 }
 
 html, body {
-  background: radial-gradient(circle, rgb(5, 5, 5) 0%, rgb(0, 0, 0) 80%, rgb(29, 29, 29)100%);
-  font-family: "Noto Sans", sans-serif;
+  background: radial-gradient(circle, rgb(5, 5, 5) 0%, rgb(29, 29, 29) 60%, rgb(29, 29, 29)100%);
+  font-family: "Space Mono", monospace;
   color: #b3b3b3;
   margin: 0;
   padding: 0;
@@ -63,8 +99,7 @@ html, body {
   display: flex;
   gap: 5px;
   flex-direction: row;
-  justify-content: space-between;
-  
+  justify-content: center;
 }
 
 h2 {
@@ -79,23 +114,42 @@ h2 {
   justify-content: space-between;
   margin-top: 20px;
   position: relative;
+  user-select: none;
 }
 
 .logo {
+  font-family: "Orbitron", sans-serif;
   font-weight: 900;
-  font-size: 3rem;
-  color: #b3b3b3;
-  font-style: italic;
+  font-size: 2rem;
+  color: #141414;
   margin: 0.8em 0;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
   width: fit-content;
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  text-transform: uppercase;
+  text-shadow: 
+  2px 0 5px #4646469f,
+  0 0 20px #afafaf8c;
+}
+
+.logoImg {
+  width: auto;
+  height: 72px;
+  filter: brightness(1) invert(1) saturate(0.5);
 }
 
 .logo:hover {
   transform: scale(1.05);
-  filter: brightness(1.5);
+  filter: brightness(0.7) invert(0.9) saturate(5);
+}
+
+.logo:active {
+  transform: scale(0.95);
 }
 
 .navButtons {
@@ -113,14 +167,16 @@ h2 {
 }
 
 .button {
-  background-color: #161616c2;
+  font-family: "Space Mono", monospace;
+  letter-spacing: -1px;
+  display: flex;
+  background-color: #0a0a0ad5;
   border-radius: 3px;
   border: 0;
   box-sizing: border-box;
   color: #b3b3b3;
   cursor: pointer;
-  display: inline-block;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.15385;
   margin: 0;
@@ -135,6 +191,14 @@ h2 {
   vertical-align: baseline;
   white-space: nowrap;
   transition: all 0.125s ease;
+  align-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 5px;
+  justify-content: center;
+}
+.uploadFormDiv .button{
+  border: 1px solid #b3b3b357 !important;
 }
 
 .button:hover,
@@ -257,11 +321,11 @@ h2 {
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: 1em;
   padding: 0.5em;
   gap: 10px;
   align-items: center;
-  background: #000000ee;
+  background: #111111e3;
+  backdrop-filter: blur(5px);
   align-content: space-between;
   border-radius: 5px;
   border: 1px solid #b3b3b357;
@@ -286,10 +350,11 @@ h2 {
 .uploadControlsDiv {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2em;
   justify-content: space-around;
   width: 100%;
   align-items: flex-end;
+  padding: 5px;
 }
 
 .fileInput {
@@ -302,7 +367,7 @@ h2 {
   flex-direction: column;
   padding: 10px;
   border-radius: 3px;
-  background: #000000c2;
+  background: #111111e3;
   gap: 5px;
   justify-content: space-between;
 }
@@ -318,7 +383,6 @@ h2 {
   justify-content: flex-start;
 }
 
-/* elipsis for file name */
 .fileDetailsContainer div:nth-child(1) {
   white-space: nowrap;
   overflow: hidden;
@@ -332,7 +396,8 @@ h2 {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  margin: 1em 0;
 }
 
 .filesHeaderText {
@@ -344,7 +409,15 @@ h2 {
   display: flex;
   flex-direction: row;
   gap: 1em;
-  margin: 1em 0;
+}
+
+.fileTypesText{
+  font-weight: 200;
+  font-size: 12px;
+}
+
+.fileTypesText span:nth-child(2) {
+  font-weight: 500;
 }
 
 .authFormContainer {
@@ -365,7 +438,8 @@ h2 {
 .authFormFields {
   display: flex;
   flex-direction: column;
-  background: #000000ec;
+  background: #111111e3;
+  backdrop-filter: blur(10px);
   padding: 1em;
   gap: 10px;
   border-radius: 5px;
@@ -379,23 +453,52 @@ h2 {
   gap: 5px;
 }
 
+label {
+  user-select: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 700;
+  font-size: 1em;
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+label:hover{
+  filter: brightness(1.2);
+}
+
 input {
+  font-family: "Rajdhani", sans-serif;
   background: #00000071;
   border: 1px solid #b3b3b357;
   border-radius: 3px;
   color: #b3b3b3;
   font-size: 1em;
   padding: 0.5em;
+  outline: none;
+  width: 100%;
+}
+
+input[type="checkbox"] {
+  filter: brightness(2) invert(0.8); 
+  transform: scale(1.5);
+  width: fit-content;
 }
 
 .fileGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(222px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(322px, 1fr));
   gap: 10px;
 }
 
 .dashTabs{
-  margin-top: 2em;
+  margin-top: 4.2em;
   display: flex;
   flex-direction: row;
   justify-content: start;
@@ -403,22 +506,31 @@ input {
 }
 
 .dashTabs button{
-  background: #050505bb;
+  font-family: "Space Mono", monospace;
+  background: #050505da;
+  backdrop-filter: blur(5px);
   border: 0;
-  color: #b3b3b3;
-  font-size: 0.9em;
+  color: #ffffffe0;
+  font-size: 1.1em;
   padding: 0.75em;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-right: 5px;
-  border-top: #000000 2px solid;
-  border-left: #000000 2px solid;
-  border-right: #000000 2px solid;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.tabButton:not(.active) {
+  color: #7a7a7ae0;
+  background: #0505059f;
+  filter: brightness(1.2);
+
 }
 
 .dashTabs button:hover{
-  background: #050505;
+  color: #ffffffe0;
+  background: #050505da;
   filter: brightness(1.2);
 }
 
@@ -426,9 +538,9 @@ input {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: #050505bb;
-  border-left: #000000 2px solid;
-  border-right: #000000 2px solid;
-  border-bottom: #000000 2px solid;
+  background: #050505da;
+  backdrop-filter: blur(5px);
+  border-radius: 5px;
+  border-top-left-radius: 0;
   padding: 1em;
 }

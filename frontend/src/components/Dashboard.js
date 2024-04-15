@@ -7,6 +7,13 @@ import UploadFormHTTP from './UploadFormHTTP';
 import PrivateFiles from './PrivateFiles';
 import { getPublicFiles, getPrivateFiles } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
+import LogoutIcon from '@mui/icons-material/Logout';
+import LoginIcon from '@mui/icons-material/Login';
+import PowerIcon from '@mui/icons-material/Power';
+import HttpIcon from '@mui/icons-material/Http';
+import LanguageIcon from '@mui/icons-material/Language';
+import AddIcon from '@mui/icons-material/Add';
+
 
 const Dashboard = () => {
   const [publicFiles, setPublicFiles] = useState([]);
@@ -98,21 +105,24 @@ const Dashboard = () => {
       </div>
       <div className='lightning'></div>
       <div id='logo'>
-        <div className='logo'>Molex.cloud</div>
+        <div className='logo'>
+        <img className='logoImg' src='assets/cloud.png'></img>
+          Molex.cloud
+          </div>
         <div className='navButtons'>
           {!isLoggedIn && (
             <>
-              <button className='button' onClick={toggleLoginForm}>Login</button>
-              <button className='button' onClick={toggleRegisterForm}>Register</button>
+              <button className='button' onClick={toggleLoginForm}><LoginIcon /> Login</button>
+              <button className='button' onClick={toggleRegisterForm}><AddIcon />Account</button>
             </>
           )}
-          {isLoggedIn && <button className='button' onClick={handleLogout}>Logout</button>}
+          {isLoggedIn && <button className='button' onClick={handleLogout}><LogoutIcon /> Logout</button>}
         </div>
       </div>
 
       <div className='dashButtons'>
-        {isLoggedIn && <button className='button' onClick={toggleUploadForm}>Upload File via Socket</button>}
-        {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>Upload File via HTTP</button>}
+        {isLoggedIn && <button className='button' onClick={toggleUploadForm}>Socket Upload<PowerIcon /></button>}
+        {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>HTTP Upload<LanguageIcon /> </button>}
       </div>
 
       {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} />}

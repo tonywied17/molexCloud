@@ -4,6 +4,19 @@ const File = require('../models/File');
 const { v4: uuidv4 } = require('uuid');
 
 //! File upload session class (Create a new instance for each file upload session)
+// ws: WebSocket instance
+// id: Unique session ID
+// metadataReceived: Boolean to check if metadata is received
+// metadata: Object to store file metadata
+// writeStream: WriteStream instance to write file chunks
+// totalBytesSent: Total bytes sent
+// totalSize: Total file size
+// uploadTimer: Timeout to end file upload if no data is received
+// rand: Random string to create a unique directory for each file upload
+// finalFilePath: Final file path to store the uploaded file
+// filePath: Temporary file path to store the uploaded file
+// handleFileUpload: Method to handle file upload data payload
+// handleChunk: Method to handle file chunk
 class FileUploadSession {
   constructor(ws) {
     this.id = uuidv4();
@@ -20,14 +33,18 @@ class FileUploadSession {
   }
 
   //! Handle the file upload data payload (metadata or file chunk)
+  // data: { type: 'file_upload_metadata', payload: { filename: 'file.txt', isPrivate: true, mimeType: 'text/plain', size: 1024 } } - Store file metadata and create writeStream
+  // data: Buffer (file chunk) - File chunk upload
+  // data: { type: 'file_resume' } - Resume file upload
   async handleFileUpload(data) {
     try {
       if (!this.metadataReceived && typeof data === 'object' && data.hasOwnProperty('filename')) {
         this.metadataReceived = true;
         this.metadata = data;
-        this.filePath = path.join(this.finalFilePath, this.metadata.filename);
         this.totalSize = data.size;
-        await this.handleMetadata();
+        this.filePath = path.join(this.finalFilePath, this.metadata.filename);
+        await fs.promises.mkdir(this.finalFilePath, { recursive: true });
+        this.writeStream = fs.createWriteStream(this.filePath, { flags: 'a', highWaterMark: 0 });
       } else if (data.type === 'file_resume') {
         if (this.writeStream) {
           this.writeStream.end();
@@ -47,28 +64,8 @@ class FileUploadSession {
     }
   }
 
-  //! Handle metadata
-  async handleMetadata() {
-    const { filename, size, isPrivate } = this.metadata;
-
-    await fs.promises.mkdir(this.finalFilePath, { recursive: true });
-  
-    this.writeStream = fs.createWriteStream(this.filePath);
-  
-    this.ws.on('close', async () => {
-      this.writeStream.end();
-      if (this.totalBytesSent === size) {
-        console.log(`File ${filename} uploaded successfully.`);
-        this.ws.send(JSON.stringify({ success: true }));
-      } else {
-        fs.unlinkSync(this.filePath);
-        console.log(`File ${filename} transfer failed.`);
-        this.ws.send(JSON.stringify({ error: 'File transfer failed' }));
-      }
-    });
-  }
-
   //! Handle file chunk
+  // chunkData: Buffer (file chunk) - File chunk upload
   async handleChunk(chunkData) {
     try {
       if (!this.metadataReceived) {
@@ -91,46 +88,48 @@ class FileUploadSession {
       const markerIndex = chunkData.indexOf(endOfFileMarker);
 
       if (markerIndex !== -1) {
-
         this.ws.send(JSON.stringify({ success: true }));
         console.log('End of file marker found.');
         const chunk = Buffer.from(chunkData.slice(0, markerIndex));
 
         this.writeStream.write(chunk, 'binary');
 
-        this.writeStream.end();
+        console.log('Total bytes sent:', this.totalBytesSent);
+        console.log('File size:', this.totalSize);
 
-        console.log('File upload ended. Closing connection and inserting record.');
+        if (this.totalBytesSent === this.totalSize) {
+          this.writeStream.end();
+          console.log('File upload ended. Closing writeStream and inserting record.');
 
-        const { filename, isPrivate, mimeType } = this.metadata;
+          const { filename, isPrivate, mimeType } = this.metadata;
 
-        const existingFile = await File.findOne({ where: { filename: filename } });
-        if (existingFile) {
-          console.log('File already exists. Updating record...');
-          await existingFile.update({
-            filename: filename,
-            path: this.filePath,
-            isPrivate: isPrivate,
-            fileType: mimeType || 'unknown'
-          });
-        } else {
-          console.log('Creating file record...');
-          await File.create({
-            filename: filename,
-            path: this.filePath,
-            isPrivate: isPrivate,
-            fileType: mimeType || 'unknown'
-          });
+          const existingFile = await File.findOne({ where: { filename: filename } });
+          if (existingFile) {
+            console.log('File already exists. Updating record...');
+            await existingFile.update({
+              filename: filename,
+              path: this.filePath,
+              isPrivate: isPrivate,
+              fileType: mimeType || 'unknown'
+            });
+          } else {
+            console.log('Creating file record...');
+            await File.create({
+              filename: filename,
+              path: this.filePath,
+              isPrivate: isPrivate,
+              fileType: mimeType || 'unknown'
+            });
+          }
+
+          this.ws.close();
+
+          clearTimeout(this.uploadTimer);
+          this.metadataReceived = false;
+          this.metadata = {};
+          this.writeStream = null;
+          this.totalBytesSent = 0;
         }
-
-        this.ws.close();
-        clearTimeout(this.uploadTimer);
-
-        this.metadataReceived = false;
-        this.metadata = {};
-        this.writeStream = null;
-        this.totalBytesSent = 0;
-        
       } else {
         const chunk = Buffer.from(chunkData);
         this.writeStream.write(chunk, 'binary');
@@ -141,6 +140,7 @@ class FileUploadSession {
       this.ws.send(JSON.stringify({ error: 'Internal server error' }));
     }
   }
+
 }
 
 const UPLOAD_TIMEOUT = 60000;

@@ -15,12 +15,13 @@ const PrivateFiles = ({ files }) => {
         <>
           <div className='filesHeader'>
             <div>
-              <input type='text' value={files.search} placeholder='Search...' />  
+              <input type='text' value={files.search} placeholder='Search...' />
             </div>
             <div className='fileTypesContainer'>
-              {Object.entries(files.fileTypeCounts).map(([fileType, count]) => (
-                <div key={fileType}>
-                  <b>{fileType}:</b> {count}
+              
+              {Object.entries(files.fileTypeCounts).map(([fileType, count], index, array) => (
+                <div className='fileTypesText' key={fileType}>
+                  <span>{fileType}</span> <span>{count}</span>
                 </div>
               ))}
             </div>
@@ -35,7 +36,7 @@ const PrivateFiles = ({ files }) => {
                   <div>{file.filename}</div>
                   <div>{file.fileType}</div>
                 </div>
-                
+
 
                 <div className='fileButtonsContainer'>
                   <button className='button' onClick={() => downloadFile(file.id, file.filename)}>Download</button>

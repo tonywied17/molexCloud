@@ -83,7 +83,7 @@ const UploadFormHTTP = ({ onUploadSuccess }) => {
             Is Private:
             <input type="checkbox" checked={isPrivate} onChange={handleCheckboxChange} />
           </label>
-          <button className='button' onClick={handleUpload}>Upload</button>
+          <button className='button' style={{width: '100%'}} onClick={handleUpload}>Upload</button>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 //! API Configuration
-const API_URL = 'http://localhost:3222/api';
+const API_URL = 'https://molex.cloud:3222';
 const api = axios.create({
   baseURL: API_URL,
   headers: {

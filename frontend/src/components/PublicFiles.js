@@ -18,7 +18,9 @@ const PublicFiles = ({ files }) => {
       {fileList.length > 0 ? (
         <>
           <div className='filesHeader'>
-            <div className='filesHeaderText'>Public Files</div>
+            <div>
+              <input type='text' value={files.search} placeholder='Search...' />  
+            </div>
             <div className='fileTypesContainer'>
               {Object.entries(files.fileTypeCounts).map(([fileType, count]) => (
                 <div key={fileType}>
@@ -28,13 +30,17 @@ const PublicFiles = ({ files }) => {
             </div>
 
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+          <div className='fileGrid'>
+
             {fileList.map((file, index) => (
 
               <div className='fileDetailsBox' key={index}>
-                [id: {file.id}] - {file.filename}
-                <b>{file.fileType}</b>
-                <i>{file.path}</i>
+                <div className='fileDetailsContainer'>
+                  <div>{file.filename}</div>
+                  <div>{file.fileType}</div>
+                </div>
+                
+
                 <div className='fileButtonsContainer'>
                   <button className='button' onClick={() => copyToClipboard('http://localhost:3222/api/files/download/' + file.id)}>Copy Share Link</button>
                   <button className='button' onClick={() => downloadFile(file.id, file.filename)}>Download</button>
@@ -46,7 +52,6 @@ const PublicFiles = ({ files }) => {
         </>
       ) : (
         <div className='filesHeader'>
-          <div className='filesHeaderText'>Public Files</div>
           <div className='fileTypesContainer'>
             <p>No public files found</p>
           </div>

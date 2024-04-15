@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [showUploadFormHTTP, setShowUploadFormHTTP] = useState(false);
+  const [activeTab, setActiveTab] = useState('public');
 
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 
@@ -70,11 +71,9 @@ const Dashboard = () => {
   const fetchFiles = async () => {
     try {
       const publicFilesResponse = await getPublicFiles();
-      console.log(publicFilesResponse);
       setPublicFiles(publicFilesResponse);
       if (isLoggedIn) {
         const privateFilesResponse = await getPrivateFiles();
-        console.log(privateFilesResponse);
         setPrivateFiles(privateFilesResponse);
       }
     } catch (error) {
@@ -91,9 +90,7 @@ const Dashboard = () => {
   };
 
   return (
-
-
-    <div>
+    <div className='dashboardContainer'>
       <div className='clouds'>
         <div className='clouds-1'></div>
         <div className='clouds-2'></div>
@@ -101,7 +98,7 @@ const Dashboard = () => {
       </div>
       <div className='lightning'></div>
       <div id='logo'>
-        <div class='logo'>Molex.cloud</div>
+        <div className='logo'>Molex.cloud</div>
         <div className='navButtons'>
           {!isLoggedIn && (
             <>
@@ -117,12 +114,31 @@ const Dashboard = () => {
         {isLoggedIn && <button className='button' onClick={toggleUploadForm}>Upload File via Socket</button>}
         {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>Upload File via HTTP</button>}
       </div>
+
       {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} />}
       {isLoggedIn && showUploadFormHTTP && <UploadFormHTTP onUploadSuccess={handleUploadSuccess} />}
+
       {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} />}
       {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} />}
-      {isLoggedIn && <PrivateFiles files={privateFiles} />}
-      <PublicFiles files={publicFiles} />
+
+
+
+      <div className='filesContainer'>
+        <div className='dashTabs'>
+          <button className={`tabButton ${activeTab === 'public' ? 'active' : ''}`} onClick={() => setActiveTab('public')}>
+            Public Files
+          </button>
+          {isLoggedIn && (
+            <button className={`tabButton ${activeTab === 'private' ? 'active' : ''}`} onClick={() => setActiveTab('private')}>
+              Private Files
+            </button>
+          )}
+        </div>
+        <div className='tabsContent'>
+          {activeTab === 'public' && <PublicFiles files={publicFiles} />}
+          {activeTab === 'private' && isLoggedIn && <PrivateFiles files={privateFiles} />}
+        </div>
+      </div>
     </div>
   );
 };

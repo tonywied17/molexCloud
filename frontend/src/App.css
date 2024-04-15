@@ -9,24 +9,42 @@
 @media only screen and (max-width: 1024px) {
   .logo {
     width: 310px;
+    margin: 0.2em 0 !important;
+    font-size: 2.5rem !important;
+    align-self: center;
   }
-
+  .dashboardContainer {
+    width: 90vw !important;
+  }
+  #logo {
+    flex-direction: column !important;
+    align-items: end !important;
+    margin-top: 0 !important;
+    position: relative;
+    margin-bottom: 2em;
+  }
 }
 
 :root {
   color-scheme: dark;
 }
 
-body {
-  background: radial-gradient(circle, rgb(0, 0, 0) 0%, rgb(0, 0, 0) 100%);
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: radial-gradient(circle, rgb(5, 5, 5) 0%, rgb(0, 0, 0) 80%, rgb(29, 29, 29)100%);
   font-family: "Noto Sans", sans-serif;
+  color: #b3b3b3;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 .filesContainer {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-top: 2em;
   position: relative;
 }
 
@@ -37,11 +55,16 @@ body {
   gap: 10px;
 }
 
+.dashboardContainer{
+  width: 70vw;
+}
+
 .fileButtonsContainer {
   display: flex;
   gap: 5px;
   flex-direction: row;
-  justify-content: flex-end;
+  justify-content: space-between;
+  
 }
 
 h2 {
@@ -67,6 +90,7 @@ h2 {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
+  width: fit-content;
 }
 
 .logo:hover {
@@ -89,10 +113,9 @@ h2 {
 }
 
 .button {
-  background-color: #000000c2;
+  background-color: #161616c2;
   border-radius: 3px;
-  border: 1px solid #b3b3b357;
-  box-shadow: #969696 -1px -1px 0px 0 inset;
+  border: 0;
   box-sizing: border-box;
   color: #b3b3b3;
   cursor: pointer;
@@ -111,17 +134,18 @@ h2 {
   touch-action: manipulation;
   vertical-align: baseline;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.125s ease;
 }
 
 .button:hover,
 .button:focus {
-  background-color: #cfcfcf8e;
-  color: #000000;
+  background: #161616;
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.555);
 }
 
 .button:focus {
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
+  
 }
 
 .button:active {
@@ -232,21 +256,40 @@ h2 {
 .uploadFormDiv {
   position: relative;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   margin: 1em;
   padding: 0.5em;
   gap: 10px;
   align-items: center;
-  background: #000000c2;
+  background: #000000ee;
   align-content: space-between;
+  border-radius: 5px;
+  border: 1px solid #b3b3b357;
   justify-content: space-between;
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  min-width: 500px;
+}
+
+.uploadFormFields {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  gap: 10px;
+  border-radius: 5px;
+  width: 100%;
 }
 
 .uploadControlsDiv {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 10px;
-  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  align-items: flex-end;
 }
 
 .fileInput {
@@ -255,14 +298,35 @@ h2 {
 
 
 .fileDetailsBox{
-  display: flex; 
+  display: flex;
   flex-direction: column;
-  min-width: 70vw; 
   padding: 10px;
   border-radius: 3px;
-  border: 1px solid #b3b3b357;
-  box-shadow: #969696 -1px -1px 0px 0 inset;
+  background: #000000c2;
+  gap: 5px;
+  justify-content: space-between;
 }
+
+.fileDetailsContainer{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  min-height: 75px;
+  justify-content: flex-start;
+}
+
+/* elipsis for file name */
+.fileDetailsContainer div:nth-child(1) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  font-weight: 900;
+}
+
 
 .filesHeader{
   display: flex;
@@ -301,17 +365,70 @@ h2 {
 .authFormFields {
   display: flex;
   flex-direction: column;
-  background: #000000;
+  background: #000000ec;
   padding: 1em;
   gap: 10px;
-  border-radius: 3px;
+  border-radius: 5px;
   width: 100%;
   border: 1px solid #b3b3b357;
-  box-shadow: #969696 -1px -1px 0px 0 inset;
 }
 
 .inputField {
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+input {
+  background: #00000071;
+  border: 1px solid #b3b3b357;
+  border-radius: 3px;
+  color: #b3b3b3;
+  font-size: 1em;
+  padding: 0.5em;
+}
+
+.fileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(222px, 1fr));
+  gap: 10px;
+}
+
+.dashTabs{
+  margin-top: 2em;
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+}
+
+.dashTabs button{
+  background: #050505bb;
+  border: 0;
+  color: #b3b3b3;
+  font-size: 0.9em;
+  padding: 0.75em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 5px;
+  border-top: #000000 2px solid;
+  border-left: #000000 2px solid;
+  border-right: #000000 2px solid;
+}
+
+.dashTabs button:hover{
+  background: #050505;
+  filter: brightness(1.2);
+}
+
+.tabsContent{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #050505bb;
+  border-left: #000000 2px solid;
+  border-right: #000000 2px solid;
+  border-bottom: #000000 2px solid;
+  padding: 1em;
 }

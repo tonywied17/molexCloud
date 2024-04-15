@@ -107,8 +107,7 @@ async function uploadFileChunkHTTP(req, res) {
     const isPrivate = req.headers.isprivate === 'true';
     const totalChunks = parseInt(req.headers.totalchunks);
     const chunkNumber = parseInt(req.headers.chunknumber);
-    // const userId = req.user.userId.toString();
-    const userId = randomString();
+    const userId = req.user.userId.toString();
 
     let chunk = req.files.chunk;
     const fileName = chunk.name;

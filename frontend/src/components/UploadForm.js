@@ -87,9 +87,10 @@ const UploadForm = ({ onUploadSuccess }) => {
 
   return (
     <div>
-      <h2>Socket Upload</h2>
       <div className='uploadFormDiv'>
-        <div>
+      <div className='modalTitle'>Socket Upload</div>
+        <div className='uploadFormFields'>
+          
           <input type="file" className='fileInput' onChange={handleFileChange} />
           <button className='button' onClick={() => document.querySelector('input[type="file"]').click()}>Select File</button>
           {progress > 0 && <div>Progress: {progress}%</div>}

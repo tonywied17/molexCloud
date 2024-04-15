@@ -4,6 +4,7 @@ import { uploadFileChunk } from '../services/api';
 const UploadFormHTTP = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -22,6 +23,7 @@ const UploadFormHTTP = ({ onUploadSuccess }) => {
     console.log(file);
     const chunkSize = 10 * 1024 * 1024; // 10MB
     const totalChunks = Math.ceil(file.size / chunkSize);
+    let totalBytesSent = 0;
 
     console.log('Total chunks:', totalChunks);
     console.log('Is private:', isPrivate);
@@ -31,6 +33,10 @@ const UploadFormHTTP = ({ onUploadSuccess }) => {
       const start = (i - 1) * chunkSize;
       const end = i * chunkSize;
       const chunk = file.slice(start, end);
+
+      totalBytesSent += chunk.size;
+      let progress = Math.round((totalBytesSent / file.size) * 100);
+      setProgress(progress);
 
       const formData = new FormData();
       formData.append('chunk', chunk, file.name);
@@ -64,11 +70,13 @@ const UploadFormHTTP = ({ onUploadSuccess }) => {
 
   return (
     <div>
-      <h2>HTTP Upload</h2>
       <div className='uploadFormDiv'>
-        <div>
+      <div className='modalTitle'>HTTP Upload</div>
+        <div className='uploadFormFields'>
+          
           <input type="file" className='fileInput' onChange={handleFileChange} />
           <button className='button' onClick={() => document.querySelector('input[type="file"]').click()}>Select File</button>
+          {progress > 0 && <div>Progress: {progress}%</div>}
         </div>
         <div className='uploadControlsDiv'>
           <label>

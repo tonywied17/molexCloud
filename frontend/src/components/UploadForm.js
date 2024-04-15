@@ -19,7 +19,7 @@ const UploadForm = ({ onUploadSuccess }) => {
       return;
     }
   
-    const socket = new WebSocket('wss://molex.cloud:3222');
+    const socket = new WebSocket('wss://molex.cloud/wss/');
   
     let totalBytesSent = 0;
   

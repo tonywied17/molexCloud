@@ -43,7 +43,7 @@ const PublicFiles = ({ files }) => {
 
 
                 <div className='fileButtonsContainer'>
-                  <button className='button' onClick={() => copyToClipboard('https://molex.cloud:3222/files/download/' + file.id)}>Copy Share Link</button>
+                  <button className='button' onClick={() => copyToClipboard('https://molex.cloud/api/files/download/' + file.id)}>Copy Share Link</button>
                   <button className='button' onClick={() => downloadFile(file.id, file.filename)}>Download</button>
                 </div>
               </div>

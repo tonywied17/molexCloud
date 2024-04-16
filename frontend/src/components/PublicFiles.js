@@ -1,9 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { downloadFile } from '../services/api';
+import { getMimeIcon } from '../services/helpers';
 
 const PublicFiles = ({ files }) => {
   const [searchText, setSearchText] = useState('');
   const [expandedYears, setExpandedYears] = useState({});
+
+  useEffect(() => {
+    if (files && files.files) {
+      const mostRecentDate = findMostRecentDate(files.files);
+      if (mostRecentDate) {
+        const { year, month } = mostRecentDate;
+        setExpandedYears((prevExpandedYears) => ({
+          ...prevExpandedYears,
+          [year]: {
+            ...prevExpandedYears[year],
+            [month]: true,
+          },
+        }));
+      }
+    }
+  }, [files]);
+
+  const findMostRecentDate = (fileList) => {
+    let mostRecentDate;
+    fileList.forEach((file) => {
+      const date = new Date(file.createdAt);
+      const year = date.getFullYear();
+      const month = date.toLocaleString('default', { month: 'long' });
+      if (!mostRecentDate || date > mostRecentDate.date) {
+        mostRecentDate = { year, month, date };
+      }
+    });
+    return mostRecentDate;
+  };
 
   if (!files) {
     return <p>Loading...</p>;
@@ -63,12 +93,21 @@ const PublicFiles = ({ files }) => {
   return (
     <div className='filesContainer'>
       <div className='filesHeader'>
-        <input
-          type='text'
-          value={searchText}
-          placeholder='Search...'
-          onChange={handleSearchChange}
-        />
+        <div>
+          <input
+            type='text'
+            value={searchText}
+            placeholder='Search...'
+            onChange={handleSearchChange}
+          />
+        </div>
+        <div className='fileTypesContainer'>
+          {files && files.fileTypeCounts && Object.entries(files.fileTypeCounts).map(([fileType, count], index, array) => (
+            <div className='fileTypesText' key={fileType}>
+              <span>{fileType}</span> <span>{count}</span>
+            </div>
+          ))}
+        </div>
       </div>
       {!searchText && (
         <div className='fileTree'>
@@ -76,7 +115,7 @@ const PublicFiles = ({ files }) => {
             <div key={year} className='yearNode'>
               {/* Toggle Year Tree */}
               <h3 onClick={() => toggleYear(year)}>
-                {year} ({countItems(year)})  {expandedYears[year] ? '▲' : '▼'}
+                {year} <span className='countItemsText'>{countItems(year)} items {expandedYears[year] ? '▲' : '▼'}</span>
               </h3>
               {expandedYears[year] && (
                 <div className='monthNodes'>
@@ -84,7 +123,7 @@ const PublicFiles = ({ files }) => {
                     <div key={month} className='monthNode'>
                       {/* Toggle Month Tree */}
                       <h4 onClick={() => toggleMonth(year, month)}>
-                        {month} ({countItems(year, month)}) {expandedYears[year]?.[month] ? '▲' : '▼'}
+                        {month} <span className='countItemsText'>{countItems(year, month)} items {expandedYears[year]?.[month] ? '▲' : '▼'}</span>
                       </h4>
                       {expandedYears[year]?.[month] && (
                         <div className='dayNodes'>
@@ -92,29 +131,35 @@ const PublicFiles = ({ files }) => {
                             <div key={day} className='dayNode'>
                               {/* Toggle Day Files */}
                               <h5 onClick={() => toggleDay(year, month, day)}>
-                                {day} ({countItems(year, month, day)}) {expandedYears[year]?.[month]?.[day] ? '▲' : '▼'}
+                                {day} <span className='countItemsText'>{countItems(year, month, day)} files {expandedYears[year]?.[month]?.[day] ? '▲' : '▼'}</span>
                               </h5>
                               {expandedYears[year]?.[month]?.[day] && (
                                 <div className='fileGrids'>
                                   {dayFiles.map((file, index) => (
                                     <div className='fileDetailsBox' key={index}>
                                       <div className='fileDetailsContainer'>
-                                        <div>{file.filename}</div>
-                                        <div>{file.fileType}</div>
+                                        <div className='fileTopContainer'>
+                                          <div>{file.filename}</div>
+                                          <button
+                                            className='button copyLink'
+                                            onClick={() =>
+                                              copyToClipboard(
+                                                'https://molex.cloud/api/files/download/' + file.id
+                                              )
+                                            }
+                                          >
+                                            <i class="fa-solid fa-link"></i>
+                                          </button>
+                                        </div>
+                                        <div className='fileTypeIconContainer'>
+                                          <i className={`fileDetailsMimeType fa-regular ${getMimeIcon(file.fileType)}`}></i>
+                                          <span>{file.fileType}</span>
+                                        </div>
                                       </div>
                                       <div className='fileButtonsContainer'>
+
                                         <button
-                                          className='button'
-                                          onClick={() =>
-                                            copyToClipboard(
-                                              'https://molex.cloud/api/files/download/' + file.id
-                                            )
-                                          }
-                                        >
-                                          Copy Share Link
-                                        </button>
-                                        <button
-                                          className='button'
+                                          className='button downloadFile'
                                           onClick={() => downloadFile(file.id, file.filename)}
                                         >
                                           Download

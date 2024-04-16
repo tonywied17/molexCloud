@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 
 @media only screen and (max-width: 1024px) {
   .logo {
@@ -59,6 +59,11 @@
     font-size: 1rem !important;
     padding: 10px 0.8em !important;
   }
+  .yearNode h3,
+  .monthNode h4,
+  .dayNode {
+    /* margin-left: 0 !important; */
+  }
 }
 
 :root {
@@ -71,7 +76,7 @@
 
 html, body {
   background: radial-gradient(circle, rgb(5, 5, 5) 0%, rgb(29, 29, 29) 60%, rgb(29, 29, 29)100%);
-  font-family: "Space Mono", monospace;
+  font-family: "Source Code Pro", monospace;
   color: #b3b3b3;
   margin: 0;
   padding: 0;
@@ -99,7 +104,7 @@ html, body {
   display: flex;
   gap: 5px;
   flex-direction: row;
-  justify-content: center;
+  align-items: stretch;
 }
 
 h2 {
@@ -167,7 +172,7 @@ h2 {
 }
 
 .button {
-  font-family: "Space Mono", monospace;
+  font-family: "Source Code Pro", monospace;
   letter-spacing: -1px;
   display: flex;
   background-color: #0a0a0ad5;
@@ -177,7 +182,7 @@ h2 {
   color: #b3b3b3;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.15385;
   margin: 0;
   outline: none;
@@ -197,20 +202,36 @@ h2 {
   gap: 5px;
   justify-content: center;
 }
+.button.copyLink {
+  background: transparent;
+  border: #303030d5 1px solid;
+  color: #636363;
+}
+.button.downloadFile {
+  border: #303030d5 1px solid;
+  color: #636363;
+  flex-grow: 1;
+}
+
 .uploadFormDiv .button{
   border: 1px solid #b3b3b357 !important;
 }
 
-.button:hover,
-.button:focus {
-  background: #161616;
-  filter: brightness(1.2);
+.button:hover:not(.downloadFile):not(.copyLink),
+.button:focus:not(.downloadFile):not(.copyLink) {
+  filter: brightness(1.2) saturate(1.5);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.555);
 }
 
-.button:focus {
-  
+.button.downloadFile:hover,
+.button.downloadFile:focus,
+.button.copyLink:hover,
+.button.copyLink:focus {
+  filter: brightness(1.2) saturate(1.5);
+  font-weight: 500;
+  box-shadow: 0 0 2px 1px rgba(121, 121, 121, 0.267);
 }
+
 
 .button:active {
   box-shadow: none;
@@ -448,14 +469,14 @@ h2 {
   padding: 10px;
   border-radius: 3px;
   background: #111111e3;
-  gap: 5px;
+  gap: 1.5em;
   justify-content: space-between;
 }
 
 .fileDetailsContainer{
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 1.5em;
   align-items: center;
   height: 100%;
   width: 100%;
@@ -463,21 +484,37 @@ h2 {
   justify-content: flex-start;
 }
 
-.fileDetailsContainer div:nth-child(1) {
+.fileTopContainer div:nth-child(1) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  font-weight: 900;
+  font-weight: 400;
+  cursor: default;
 }
 
+.fileTopContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+}
 
 .filesHeader{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin: 1em 0;
+  gap: 1em;
+
+}
+
+.filesHeader > div:nth-child(1){
+  flex-grow: 1;
 }
 
 .filesHeaderText {
@@ -492,12 +529,12 @@ h2 {
 }
 
 .fileTypesText{
-  font-weight: 200;
+  font-weight: 900;
   font-size: 12px;
 }
 
 .fileTypesText span:nth-child(2) {
-  font-weight: 500;
+  font-weight: 200;
 }
 
 .authFormContainer {
@@ -647,3 +684,47 @@ input[type="checkbox"] {
   padding: 1em;
 }
 
+.fileDetailsMimeType {
+  font-size: 2.22rem;
+}
+
+.fileTypeIconContainer{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  user-select: none;
+}
+
+.fileTypeIconContainer span {
+  font-size: 12.22px;
+
+}
+
+.dayNode h5,
+.monthNode h4,
+.yearNode h3 {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  justify-content: space-between;
+  border-bottom: 1px dotted #b3b3b357;
+  padding-bottom: 0.5em;
+}
+
+.yearNode h3 {
+  margin-bottom: 2em;
+}
+
+.monthNode h4 {
+  margin-left: 3em;
+  margin-bottom: 2em;
+}
+
+.dayNode {
+  margin-left: 6em;
+}
+
+.countItemsText{
+  font-weight: 300;
+}

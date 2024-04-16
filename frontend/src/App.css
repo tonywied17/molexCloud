@@ -491,10 +491,32 @@ input[type="checkbox"] {
   width: fit-content;
 }
 
-.fileGrid {
+.fileGrids {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(322px, 1fr));
   gap: 10px;
+}
+
+.yearNode > h3 { 
+  user-select: none;
+  cursor: pointer;
+}
+.yearNode > h3:hover {
+  filter: brightness(1.2);
+}
+.monthNode > h4 { 
+  user-select: none;
+  cursor: pointer;
+}
+.monthNode > h4:hover {
+  filter: brightness(1.2);
+}
+.dayNode > h5 { 
+  user-select: none;
+  cursor: pointer;
+}
+.dayNode > h5:hover {
+  filter: brightness(1.2);
 }
 
 .dashTabs{
@@ -544,3 +566,4 @@ input[type="checkbox"] {
   border-top-left-radius: 0;
   padding: 1em;
 }
+

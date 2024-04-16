@@ -53,6 +53,13 @@ const PublicFiles = ({ files }) => {
     }));
   };
 
+  const countItems = (year, month, day) => {
+    if (!year) return Object.keys(groupFilesByDate(fileList)).length;
+    if (!month) return Object.keys(groupFilesByDate(fileList)[year]).length;
+    if (!day) return Object.keys(groupFilesByDate(fileList)[year][month]).length;
+    return groupFilesByDate(fileList)[year][month][day].length;
+  };
+
   return (
     <div className='filesContainer'>
       <div className='filesHeader'>
@@ -67,28 +74,25 @@ const PublicFiles = ({ files }) => {
         <div className='fileTree'>
           {Object.entries(groupFilesByDate(fileList)).map(([year, months]) => (
             <div key={year} className='yearNode'>
-
-              {/* ? Toggle Year Tree */}
+              {/* Toggle Year Tree */}
               <h3 onClick={() => toggleYear(year)}>
-                {year} {expandedYears[year] ? '▲' : '▼'}
+                {year} ({countItems(year)})  {expandedYears[year] ? '▲' : '▼'}
               </h3>
               {expandedYears[year] && (
                 <div className='monthNodes'>
                   {Object.entries(months).map(([month, days]) => (
                     <div key={month} className='monthNode'>
-
-                      {/* ? Toggle Month Tree */}
+                      {/* Toggle Month Tree */}
                       <h4 onClick={() => toggleMonth(year, month)}>
-                        {month} {expandedYears[year]?.[month] ? '▲' : '▼'}
+                        {month} ({countItems(year, month)}) {expandedYears[year]?.[month] ? '▲' : '▼'}
                       </h4>
                       {expandedYears[year]?.[month] && (
                         <div className='dayNodes'>
                           {Object.entries(days).map(([day, dayFiles]) => (
                             <div key={day} className='dayNode'>
-
-                              {/* ? Toggle Day Files */}
+                              {/* Toggle Day Files */}
                               <h5 onClick={() => toggleDay(year, month, day)}>
-                                {day} {expandedYears[year]?.[month]?.[day] ? '▲' : '▼'}
+                                {day} ({countItems(year, month, day)}) {expandedYears[year]?.[month]?.[day] ? '▲' : '▼'}
                               </h5>
                               {expandedYears[year]?.[month]?.[day] && (
                                 <div className='fileGrids'>
@@ -168,7 +172,7 @@ const PublicFiles = ({ files }) => {
 
 export default PublicFiles;
 
-//! Group files by date 
+// Function to group files by date
 const groupFilesByDate = (files) => {
   return files.reduce((acc, file) => {
     const date = new Date(file.createdAt);

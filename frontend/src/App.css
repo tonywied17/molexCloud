@@ -245,10 +245,7 @@ h2 {
   }
 }
 
-.clouds-3 {
-  background-image: url("../public/assets/clouds_3.png");
-  animation: clouds-loop-3 17s infinite linear;
-}
+
 
 .clouds {
   filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=40);
@@ -271,6 +268,97 @@ h2 {
   right: 0;
   left: 0;
   height: 500px;
+}
+
+.clouds-3 {
+  background-image: url("../public/assets/clouds_3.png");
+  animation: clouds-loop-3 17s infinite linear;
+}
+
+.lightning-1 {
+  top: 0;
+  right: 0;
+  left: 0;
+  position: absolute;
+  width: auto;
+  height: 500px;
+  background: url("../public/assets/light_1.png") no-repeat;
+  background-size: contain;
+  animation: lightning-strike 10s infinite;
+  animation-delay: 2s;
+  opacity: 0;
+}
+
+.lightning-2 {
+  top: 0;
+  right: 0;
+  left: 0;
+  position: absolute;
+  width: auto;
+  height: 500px;
+  background: url("../public/assets/light_2.png") no-repeat;
+  background-size: contain;
+  animation: lightning-strike 10s infinite;
+  animation-delay: 6s;
+  opacity: 0;
+}
+
+.lightning-3 {
+  top: 0;
+  right: 0;
+  left:0;
+  position: absolute;
+  width: auto;
+  height: 500px;
+  background: url("../public/assets/light_3.png") no-repeat;
+  background-size: contain;
+  transform: translateX(45%);
+  animation: lightning-strike 10s infinite;
+  animation-delay: 10s;
+  opacity: 0;
+}
+
+.lightning-4 {
+  top: 0;
+  right: 0;
+  left: 0;
+  position: absolute;
+  width: auto;
+  height: 500px;
+  background: url("../public/assets/light_1.png") no-repeat;
+  background-size: contain;
+  animation: lightning-strike 10s infinite;
+  animation-delay: 10s;
+  opacity: 0;
+}
+
+.lightning-5 {
+  top: 0;
+  right: 0;
+  left: 0;
+  position: absolute;
+  width: auto;
+  height: 500px;
+  background: url("../public/assets/light_2.png") no-repeat;
+  background-size: contain;
+  animation: lightning-strike 10s infinite;
+  animation-delay: 6s;
+  opacity: 0;
+}
+
+.lightning-6 {
+  top: 0;
+  right: 0;
+  left:0;
+  position: absolute;
+  width: auto;
+  height: 500px;
+  background: url("../public/assets/light_3.png") no-repeat;
+  background-size: contain;
+  transform: translateX(45%);
+  animation: lightning-strike 10s infinite;
+  animation-delay: 2s;
+  opacity: 0;
 }
 
 @keyframes lightning-strike {
@@ -306,16 +394,8 @@ h2 {
   }
 }
 
-.lightning {
-  left: 0;
-  top: 0;
-  position: fixed;
-  width: 50%;
-  height: 50%;
-  background: url("../public/assets/lightning.png") no-repeat;
-  background-size: contain;
-  animation: lightning-strike 10s infinite 3s;
-}
+
+
 
 .uploadFormDiv {
   position: relative;

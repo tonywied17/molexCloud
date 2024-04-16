@@ -129,10 +129,20 @@ const Dashboard = () => {
     <div className='dashboardContainer'>
       <div className='clouds'>
         <div className='clouds-1'></div>
+        <div className='lightning-1'></div>
+        <div className='lightning-2'></div>
+        <div className='lightning-3'></div>
+        <div className='lightning-4'></div>
+        <div className='lightning-5'></div>
         <div className='clouds-2'></div>
+        <div className='lightning-1'></div>
+        <div className='lightning-2'></div>
+        <div className='lightning-4'></div>
+        <div className='lightning-5'></div>
         <div className='clouds-3'></div>
+
+        
       </div>
-      <div className='lightning'></div>
       <div id='logo'>
         <div className='logo'>
           <img className='logoImg' src='assets/cloud.png' alt="Molex.Cloud"></img>

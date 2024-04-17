@@ -23,13 +23,23 @@ const UploadForm = forwardRef(({ onUploadSuccess }, ref) => {
   
     let totalBytesSent = 0;
   
+    const token = localStorage.getItem('token');
+    let userId = null;
+    if(token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.userId;
+      console.log('User ID:', userId);
+    }
+
     socket.onopen = () => {
       const metadata = {
         filename: file.name,
         size: file.size,
         mimeType: file.type,
         isPrivate: isPrivate,
+        userId: userId,
       };
+      console.log('Sending metadata:', metadata);
       socket.send(JSON.stringify({ type: 'file_upload_metadata', payload: metadata }));
   
       const reader = new FileReader();

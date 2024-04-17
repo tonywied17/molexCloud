@@ -10,7 +10,9 @@ const File = sequelize.define('File', {
   filename: DataTypes.STRING,
   path: DataTypes.STRING,
   isPrivate: DataTypes.BOOLEAN,
-  fileType: DataTypes.STRING
+  fileType: DataTypes.STRING,
+  fileSize: DataTypes.INTEGER,
+  userId: { type: DataTypes.INTEGER }
 });
 
 module.exports = File;

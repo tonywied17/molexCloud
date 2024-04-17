@@ -101,8 +101,8 @@ class FileUploadSession {
           this.writeStream.end();
           console.log('File upload ended. Closing writeStream and inserting record.');
 
-          const { filename, isPrivate, mimeType } = this.metadata;
-
+          const { filename, isPrivate, mimeType, userId } = this.metadata;
+          console.log('!!!!!!!! ' + this.metadata + ' !!!!!!!!');
           const existingFile = await File.findOne({ where: { filename: filename } });
           if (existingFile) {
             console.log('File already exists. Updating record...');
@@ -110,7 +110,9 @@ class FileUploadSession {
               filename: filename,
               path: this.filePath,
               isPrivate: isPrivate,
-              fileType: mimeType || 'unknown'
+              fileType: mimeType || 'unknown',
+              fileSize: this.totalSize,
+              userId: userId
             });
           } else {
             console.log('Creating file record...');
@@ -118,7 +120,9 @@ class FileUploadSession {
               filename: filename,
               path: this.filePath,
               isPrivate: isPrivate,
-              fileType: mimeType || 'unknown'
+              fileType: mimeType || 'unknown',
+              fileSize: this.totalSize,
+              userId: userId
             });
           }
 

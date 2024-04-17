@@ -62,7 +62,7 @@
   .yearNode h3,
   .monthNode h4,
   .dayNode {
-    /* margin-left: 0 !important; */
+    margin-left: 0 !important;
   }
 }
 
@@ -727,4 +727,35 @@ input[type="checkbox"] {
 
 .countItemsText{
   font-weight: 300;
+}
+
+.myCodesContainer{
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.usersInvitesContainer{
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+  align-content: center;
+  align-items: center;
+}
+
+.codeBox {
+  font-weight: 200;
+  background: #050505da;
+  padding: 2px 1em;
+  border-radius: 5px;
+  user-select: all;
+}
+
+.notUsed {
+  color: #09ff00e0;
+}
+
+.used{
+  color: #ff0000e0;
 }

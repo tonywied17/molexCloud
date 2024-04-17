@@ -10,10 +10,9 @@ const api = axios.create({
 });
 
 //! Register user
-export const registerUser = async ({ username, password }) => {
+export const registerUser = async ({ username, password, inviteCode }) => {
   try {
-    const response = await api.post('/auth/register', { username, password });
-    console.log(response)
+    const response = await api.post('/auth/register', { username, password, inviteCode });
     return response.data;
   } catch (error) {
     throw error;
@@ -53,6 +52,26 @@ export const getPrivateFiles = async () => {
         Authorization: `Bearer ${token}`
       }
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Get users files
+export const getUsersFiles = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+
+    const response = await api.get(`/files/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log(response.data);
     return response.data;
   } catch (error) {
     throw error;
@@ -124,3 +143,62 @@ export const downloadFile = async (fileId, fileName) => {
   }
 };
 
+//! Generate invite code
+export const generateInviteCode = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+
+    const response = await api.get('/auth/generate', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data.code;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Get user invite codes
+export const getUserInviteCodes = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+
+    const response = await api.get('/auth/invite-codes', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+
+};
+
+// ! Delete user invite code
+export const deleteUserInviteCode = async (codeId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+
+    const response = await api.delete(`/auth/invite-codes/${codeId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

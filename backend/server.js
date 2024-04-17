@@ -9,8 +9,11 @@ const fileUpload = require('express-fileupload');
 const WebSocket = require('ws');
 const https = require('https'); 
 const fs = require('fs');
-const { FileUploadSession } = require('./utils/fileSocketUtil');
+const { FileUploadSession } = require('./sessions/FileUploadSession');
 require('dotenv').config();
+const db = require("./models");
+
+db.sequelize.sync();
 
 /**
  * * --- Express Server ---

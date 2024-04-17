@@ -61,6 +61,18 @@ async function getPrivateFiles(req, res) {
   }
 }
 
+//! Get Files where user is author
+async function getFilesByAuthor(req, res) {
+  try {
+    const userId = req.user.userId.toString();
+    const userFiles = await File.findAll({ where: { userId: userId } });
+    res.json(userFiles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 //! Get unique file types and their counts
 async function getFileTypesCounts(req, res) {
   try {
@@ -163,7 +175,9 @@ async function uploadFileChunkHTTP(req, res) {
             filename: fileName,
             path: finalFilePath,
             isPrivate: isPrivate,
-            fileType: fileTypeString
+            fileType: fileTypeString,
+            fileSize: fs.statSync(finalFilePath).size,
+            userId: userId,
           });
         } else {
           console.log('Creating file record...');
@@ -171,7 +185,9 @@ async function uploadFileChunkHTTP(req, res) {
             filename: fileName,
             path: finalFilePath,
             isPrivate: isPrivate,
-            fileType: fileTypeString
+            fileType: fileTypeString,
+            fileSize: fs.statSync(finalFilePath).size,
+            userId: userId,
           });
         }
 
@@ -243,6 +259,7 @@ module.exports = {
   uploadFileChunkHTTP,
   getAllFiles,
   getPrivateFiles,
+  getFilesByAuthor,
   getFileTypesCounts,
   downloadFile
 };

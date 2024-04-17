@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { downloadFile } from '../services/api';
 import { getMimeIcon } from '../services/helpers';
 
-const PrivateFiles = ({ files }) => {
+const UserFiles = ({ files }) => {
   const [searchText, setSearchText] = useState('');
   const [expandedYears, setExpandedYears] = useState({});
 
@@ -223,7 +223,7 @@ const PrivateFiles = ({ files }) => {
   );
 };
 
-export default PrivateFiles;
+export default UserFiles;
 
 // Function to group files by date
 const groupFilesByDate = (files) => {

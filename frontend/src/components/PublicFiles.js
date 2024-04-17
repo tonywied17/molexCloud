@@ -6,34 +6,42 @@ const PublicFiles = ({ files }) => {
   const [searchText, setSearchText] = useState('');
   const [expandedYears, setExpandedYears] = useState({});
 
+
   useEffect(() => {
     if (files && files.files) {
       const mostRecentDate = findMostRecentDate(files.files);
       if (mostRecentDate) {
-        const { year, month } = mostRecentDate;
+        const { year, month, day } = mostRecentDate;
         setExpandedYears((prevExpandedYears) => ({
-          ...prevExpandedYears,
+          ...prevExpandedYears[year],
           [year]: {
             ...prevExpandedYears[year],
-            [month]: true,
+            [month]: {
+              ...prevExpandedYears[year]?.[month],
+              [day]: true,
+            },
+           
           },
         }));
       }
     }
   }, [files]);
-
+  
   const findMostRecentDate = (fileList) => {
     let mostRecentDate;
     fileList.forEach((file) => {
       const date = new Date(file.createdAt);
       const year = date.getFullYear();
       const month = date.toLocaleString('default', { month: 'long' });
+      const day = date.getDate();
       if (!mostRecentDate || date > mostRecentDate.date) {
-        mostRecentDate = { year, month, date };
+        mostRecentDate = { year, month, day, date };
       }
     });
+    console.log('Most recent date:', mostRecentDate);
     return mostRecentDate;
   };
+  
 
   if (!files) {
     return <p>Loading...</p>;
@@ -148,7 +156,7 @@ const PublicFiles = ({ files }) => {
                                               )
                                             }
                                           >
-                                            <i class="fa-solid fa-link"></i>
+                                            <i className="fa-solid fa-link"></i>
                                           </button>
                                         </div>
                                         <div className='fileTypeIconContainer'>

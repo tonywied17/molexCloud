@@ -5,7 +5,9 @@ import LoginForm from './LoginForm';
 import UploadForm from './UploadForm';
 import UploadFormHTTP from './UploadFormHTTP';
 import PrivateFiles from './PrivateFiles';
-import { getPublicFiles, getPrivateFiles } from '../services/api';
+import UserFiles from './UserFiles';
+import InviteCodeForm from './InviteCodeForm';
+import { getPublicFiles, getPrivateFiles, getUsersFiles } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
@@ -16,10 +18,12 @@ import AddIcon from '@mui/icons-material/Add';
 const Dashboard = () => {
   const [publicFiles, setPublicFiles] = useState([]);
   const [privateFiles, setPrivateFiles] = useState([]);
+  const [userFiles, setUserFiles] = useState([]);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [showUploadFormHTTP, setShowUploadFormHTTP] = useState(false);
+  const [showInviteCodeForm, setShowInviteCodeForm] = useState(false);
   const [activeTab, setActiveTab] = useState('public');
 
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
@@ -28,16 +32,28 @@ const Dashboard = () => {
   const registerFormRef = useRef(null);
   const uploadFormRef = useRef(null);
   const uploadFormHTTPRef = useRef(null);
+  const inviteCodeFormRef = useRef(null);
 
   useEffect(() => {
     if (isLoggedIn) {
       getPrivateFiles()
-        .then(response => setPrivateFiles(response))
+        .then(response => {
+          console.log('Private files:', response); // Logging private files response
+          setPrivateFiles(response);
+        })
         .catch(error => console.error('Error fetching private files:', error));
+      getUsersFiles()
+        .then(response => {
+          console.log('Users files:', response); // Logging users files response
+          setUserFiles(response);
+        })
+        .catch(error => console.error('Error fetching users files:', error));
     } else {
       setPrivateFiles([]);
+      setUserFiles([]);
     }
   }, [isLoggedIn]);
+  
 
   useEffect(() => {
     getPublicFiles()
@@ -48,33 +64,35 @@ const Dashboard = () => {
   useEffect(() => {
     console.log('Effect triggered');
     const handleOutsideClick = (event) => {
-      const formRefsValues = [loginFormRef, registerFormRef, uploadFormRef, uploadFormHTTPRef];
-      const isAnyFormOpen = showLoginForm || showRegisterForm || showUploadForm || showUploadFormHTTP;
-    
+      const formRefsValues = [loginFormRef, registerFormRef, uploadFormRef, uploadFormHTTPRef, inviteCodeFormRef];
+      const isAnyFormOpen = showLoginForm || showRegisterForm || showUploadForm || showUploadFormHTTP || showInviteCodeForm;
+
       if (isAnyFormOpen) {
         const isClickInsideForm = formRefsValues.some((ref) => {
           return ref.current && (ref.current.contains(event.target) || ref.current === event.target);
         });
-    
+
         if (!isClickInsideForm) {
           setShowLoginForm(false);
           setShowRegisterForm(false);
           setShowUploadForm(false);
           setShowUploadFormHTTP(false);
+          setShowInviteCodeForm(false);
         }
       }
     };
-    
+
     document.addEventListener('mousedown', handleOutsideClick);
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
     };
-  }, [showLoginForm, showRegisterForm, showUploadForm, showUploadFormHTTP]);
+  }, [showLoginForm, showRegisterForm, showUploadForm, showUploadFormHTTP, showInviteCodeForm]);
 
   const toggleLoginForm = () => {
     setShowLoginForm(!showLoginForm);
     setShowRegisterForm(false);
   };
+
 
   const toggleRegisterForm = () => {
     setShowRegisterForm(!showRegisterForm);
@@ -84,11 +102,19 @@ const Dashboard = () => {
   const toggleUploadForm = () => {
     setShowUploadForm(!showUploadForm);
     setShowUploadFormHTTP(false);
+    setShowInviteCodeForm(false);
   };
 
   const toggleUploadFormHTTP = () => {
     setShowUploadFormHTTP(!showUploadFormHTTP);
     setShowUploadForm(false);
+    setShowInviteCodeForm(false);
+  };
+
+  const toggleInviteCodeForm = () => {
+    setShowInviteCodeForm(!showInviteCodeForm);
+    setShowUploadForm(false);
+    setShowUploadFormHTTP(false);
   };
 
   const handleLogout = () => {
@@ -106,11 +132,23 @@ const Dashboard = () => {
 
   const fetchFiles = async () => {
     try {
+
       const publicFilesResponse = await getPublicFiles();
       setPublicFiles(publicFilesResponse);
+
       if (isLoggedIn) {
+
+        console.log('logged in')
+
         const privateFilesResponse = await getPrivateFiles();
+        console.log('Private files response:', privateFilesResponse);
         setPrivateFiles(privateFilesResponse);
+
+        const usersFilesResponse = await getUsersFiles();
+        console.log('Users files response:', usersFilesResponse);
+        setUserFiles(usersFilesResponse);
+
+
       }
     } catch (error) {
       console.error('Error fetching files:', error);
@@ -124,6 +162,7 @@ const Dashboard = () => {
       await fetchFiles();
     }, 300);
   };
+
 
   return (
     <div className='dashboardContainer'>
@@ -141,7 +180,7 @@ const Dashboard = () => {
         <div className='lightning-5'></div>
         <div className='clouds-3'></div>
 
-        
+
       </div>
       <div id='logo'>
         <div className='logo'>
@@ -162,10 +201,12 @@ const Dashboard = () => {
       <div className='dashButtons'>
         {isLoggedIn && <button className='button' onClick={toggleUploadForm}>Socket Upload<PowerIcon /></button>}
         {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>HTTP Upload<LanguageIcon /> </button>}
+        {isLoggedIn && <button className='button' onClick={toggleInviteCodeForm}>Invites<LanguageIcon /> </button>}
       </div>
 
       {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} ref={uploadFormRef} />}
       {isLoggedIn && showUploadFormHTTP && <UploadFormHTTP onUploadSuccess={handleUploadSuccess} ref={uploadFormHTTPRef} />}
+      {isLoggedIn && showInviteCodeForm && <InviteCodeForm ref={inviteCodeFormRef} />}
 
       {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} ref={loginFormRef} />}
       {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} ref={registerFormRef} />}
@@ -173,17 +214,23 @@ const Dashboard = () => {
       <div className='filesContainer'>
         <div className='dashTabs'>
           <button className={`tabButton ${activeTab === 'public' ? 'active' : ''}`} onClick={() => setActiveTab('public')}>
-            Public Files
+            Public
           </button>
           {isLoggedIn && (
-            <button className={`tabButton ${activeTab === 'private' ? 'active' : ''}`} onClick={() => setActiveTab('private')}>
-              Private Files
-            </button>
+            <>
+              <button className={`tabButton ${activeTab === 'private' ? 'active' : ''}`} onClick={() => setActiveTab('private')}>
+                Private
+              </button>
+              <button className={`tabButton ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
+                Mine
+              </button>
+            </>
           )}
         </div>
         <div className='tabsContent'>
           {activeTab === 'public' && <PublicFiles files={publicFiles} />}
           {activeTab === 'private' && isLoggedIn && <PrivateFiles files={privateFiles} />}
+          {activeTab === 'users' && isLoggedIn && <UserFiles files={userFiles} />}
         </div>
       </div>
     </div>

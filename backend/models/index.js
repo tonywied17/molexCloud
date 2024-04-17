@@ -1,34 +1,27 @@
 
 
-const config = require("../config/database.js");
-const Sequelize = require("sequelize");
+const sequelize = require("../config/database.js");
+const User = require("./User");
+const UserInvite = require("./UserInvite");
+const File = require("./File");
 
+const db = {
+    User,
+    UserInvite,
+    File
+};
 
-const sequelize = new Sequelize(config.DB, {
-    dialect: config.dialect,
-    storage: config.storage,
-    logging: false,
-});
+// A user can have many invites
+User.hasMany(UserInvite, { foreignKey: "UserId" });
+UserInvite.belongsTo(User, { foreignKey: "UserId" });
 
-const db = {};
-db.Sequelize = Sequelize;
-db.sequelize = sequelize;
+// A user can have many files
+User.hasMany(File, { foreignKey: "UserId" });
+File.belongsTo(User, { foreignKey: "UserId" });
 
-/**
- * Import all models
- */
-db.User = require("./User.js")(sequelize, Sequelize);
-db.UserInvite = require("./UserInvite.js")(sequelize, Sequelize);
-db.File = require("./File.js")(sequelize, Sequelize);
-
-/**
- * Define relationships
- * This is where we define the relationships between the models
- */
-db.User.hasMany(db.UserInvite);
-db.UserInvite.belongsTo(db.User);
-db.User.hasMany(db.File);
-db.File.belongsTo(db.User);
-
-
-module.exports = db;
+module.exports = {
+    Sequelize: sequelize,
+    File: db.File,
+    User: db.User,
+    UserInvite: db.UserInvite
+};

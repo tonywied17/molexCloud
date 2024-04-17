@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { User } = require('../models/User');
-const { UserInvite } = require('../models/UserInvite');
+const { File, User, UserInvite } = require('../models');
 
 //! User registration
 async function register(req, res) {
@@ -27,7 +26,7 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({ username, password: hashedPassword });
 
-    const token = jwt.sign({ userId: newUser.id, username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: newUser.id, username }, process.env.JWT_SECRET, { expiresIn: '1y' });
     res.status(201).json({ token });
   } catch (error) {
     console.error('Error in Sequelize operation:', error);
@@ -51,7 +50,7 @@ async function login(req, res) {
     }
 
     // ? Sign a token with the user ID and username and send it back to the client
-    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1y' });
     res.json({ token });
 
   } catch (error) {

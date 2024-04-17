@@ -112,7 +112,7 @@ class FileUploadSession {
               isPrivate: isPrivate,
               fileType: mimeType || 'unknown',
               fileSize: this.totalSize,
-              userId: userId
+              UserId: userId
             });
           } else {
             console.log('Creating file record...');
@@ -122,7 +122,7 @@ class FileUploadSession {
               isPrivate: isPrivate,
               fileType: mimeType || 'unknown',
               fileSize: this.totalSize,
-              userId: userId
+              UserId: userId
             });
           }
 

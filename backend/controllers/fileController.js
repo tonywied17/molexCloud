@@ -9,7 +9,7 @@ const fsPromises = {
 };
 const Sequelize = require('sequelize');
 const path = require('path');
-const File = require('../models/File');
+const { File, User, UserInvite } = require('../models');
 const { pipeline } = require('stream/promises');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -17,7 +17,10 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 //! Get all public files
 async function getAllFiles(req, res) {
   try {
-    const publicFiles = await File.findAll({ where: { isPrivate: false } });
+    const publicFiles = await File.findAll({
+      where: { isPrivate: false }
+    });
+
     const publicFileTypesCounts = await File.findAll({
       attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
       where: { isPrivate: false },
@@ -40,16 +43,27 @@ async function getAllFiles(req, res) {
 //! Get all private files
 async function getPrivateFiles(req, res) {
   try {
-    const privateFiles = await File.findAll({ where: { isPrivate: true } });
-    const privateFileTypesCounts = await File.findAll({
+    const userId = req.user.userId.toString();
+
+    const privateFiles = await File.findAll({
+      where: { 
+        isPrivate: true,
+        UserId: userId
+      }
+    });
+
+    const privateFilesTypesCount = await File.findAll({
       attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
-      where: { isPrivate: true },
+      where: { 
+        isPrivate: true,
+        UserId: userId
+      },
       group: ['fileType']
     });
 
     // ? Get file type counts
     let fileTypeCountsObject = {};
-    privateFileTypesCounts.forEach(file => {
+    privateFilesTypesCount.forEach(file => {
       fileTypeCountsObject[file.fileType] = file.get('count');
     });
 
@@ -65,8 +79,29 @@ async function getPrivateFiles(req, res) {
 async function getFilesByAuthor(req, res) {
   try {
     const userId = req.user.userId.toString();
-    const userFiles = await File.findAll({ where: { userId: userId } });
-    res.json(userFiles);
+
+    const userFiles = await File.findAll({
+      where: {
+        UserId: userId
+      }
+    });
+    
+    const userFilesTypesCount = await File.findAll({
+      attributes: ['fileType', [Sequelize.fn('COUNT', Sequelize.col('fileType')), 'count']],
+      where: { 
+        UserId: userId 
+      },
+      group: ['fileType']
+    });
+
+    // ? Get file type counts
+    let fileTypeCountsObject = {};
+    userFilesTypesCount.forEach(file => {
+      fileTypeCountsObject[file.fileType] = file.get('count');
+    });
+
+    res.json({ files: userFiles, fileTypeCounts: fileTypeCountsObject });
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -177,7 +212,7 @@ async function uploadFileChunkHTTP(req, res) {
             isPrivate: isPrivate,
             fileType: fileTypeString,
             fileSize: fs.statSync(finalFilePath).size,
-            userId: userId,
+            UserId: userId,
           });
         } else {
           console.log('Creating file record...');
@@ -187,7 +222,7 @@ async function uploadFileChunkHTTP(req, res) {
             isPrivate: isPrivate,
             fileType: fileTypeString,
             fileSize: fs.statSync(finalFilePath).size,
-            userId: userId,
+            UserId: userId,
           });
         }
 

@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fileRoutes = require('./routes/fileRoutes');
 const authRoutes = require('./routes/authRoutes');
-const sequelize = require('./config/database');
 const path = require('path');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
@@ -11,9 +10,7 @@ const https = require('https');
 const fs = require('fs');
 const { FileUploadSession } = require('./sessions/FileUploadSession');
 require('dotenv').config();
-const db = require("./models");
-
-db.sequelize.sync();
+const { Sequelize } = require("./models");
 
 /**
  * * --- Express Server ---
@@ -147,4 +144,7 @@ console.log('WebSocket connection opened');
   });
 });
 
-sequelize.sync();
+
+Sequelize.sync().then(() => { 
+  console.log("Shit synced");
+});

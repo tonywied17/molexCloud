@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PublicFiles from './PublicFiles';
 import RegisterForm from './RegisterForm';
 import LoginForm from './LoginForm';
@@ -14,6 +15,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import PowerIcon from '@mui/icons-material/Power';
 import LanguageIcon from '@mui/icons-material/Language';
 import AddIcon from '@mui/icons-material/Add';
+import KeyIcon from '@mui/icons-material/Key';
 
 const Dashboard = () => {
   const [publicFiles, setPublicFiles] = useState([]);
@@ -27,6 +29,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('public');
 
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+  const navigate = useNavigate(); 
 
   const loginFormRef = useRef(null);
   const registerFormRef = useRef(null);
@@ -38,13 +41,11 @@ const Dashboard = () => {
     if (isLoggedIn) {
       getPrivateFiles()
         .then(response => {
-          console.log('Private files:', response); // Logging private files response
           setPrivateFiles(response);
         })
         .catch(error => console.error('Error fetching private files:', error));
       getUsersFiles()
         .then(response => {
-          console.log('Users files:', response); // Logging users files response
           setUserFiles(response);
         })
         .catch(error => console.error('Error fetching users files:', error));
@@ -138,8 +139,6 @@ const Dashboard = () => {
 
       if (isLoggedIn) {
 
-        console.log('logged in')
-
         const privateFilesResponse = await getPrivateFiles();
         console.log('Private files response:', privateFilesResponse);
         setPrivateFiles(privateFilesResponse);
@@ -147,7 +146,6 @@ const Dashboard = () => {
         const usersFilesResponse = await getUsersFiles();
         console.log('Users files response:', usersFilesResponse);
         setUserFiles(usersFilesResponse);
-
 
       }
     } catch (error) {
@@ -163,6 +161,11 @@ const Dashboard = () => {
     }, 300);
   };
 
+  const handleLogoClick = () => {
+    fetchFiles();
+    setActiveTab('public');
+    navigate('/');
+  };
 
   return (
     <div className='dashboardContainer'>
@@ -183,7 +186,7 @@ const Dashboard = () => {
 
       </div>
       <div id='logo'>
-        <div className='logo'>
+        <div className='logo' onClick={handleLogoClick}>
           <img className='logoImg' src='assets/cloud.png' alt="Molex.Cloud"></img>
           Molex.cloud
         </div>
@@ -194,6 +197,7 @@ const Dashboard = () => {
               <button className='button' onClick={toggleRegisterForm}><AddIcon />Account</button>
             </>
           )}
+          {isLoggedIn && <button className='button' onClick={toggleInviteCodeForm}><KeyIcon/> Invites</button>}
           {isLoggedIn && <button className='button' onClick={handleLogout}><LogoutIcon /> Logout</button>}
         </div>
       </div>
@@ -201,7 +205,6 @@ const Dashboard = () => {
       <div className='dashButtons'>
         {isLoggedIn && <button className='button' onClick={toggleUploadForm}>Socket Upload<PowerIcon /></button>}
         {isLoggedIn && <button className='button' onClick={toggleUploadFormHTTP}>HTTP Upload<LanguageIcon /> </button>}
-        {isLoggedIn && <button className='button' onClick={toggleInviteCodeForm}>Invites<LanguageIcon /> </button>}
       </div>
 
       {isLoggedIn && showUploadForm && <UploadForm onUploadSuccess={handleUploadSuccess} ref={uploadFormRef} />}
@@ -218,12 +221,15 @@ const Dashboard = () => {
           </button>
           {isLoggedIn && (
             <>
+            <div className='authTabs'>
               <button className={`tabButton ${activeTab === 'private' ? 'active' : ''}`} onClick={() => setActiveTab('private')}>
-                Private
+                My Private
               </button>
               <button className={`tabButton ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
-                Mine
+                My Uploads
               </button>
+            </div>
+              
             </>
           )}
         </div>

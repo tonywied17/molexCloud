@@ -12,6 +12,8 @@ const File = sequelize.define('File', {
   isPrivate: DataTypes.BOOLEAN,
   fileType: DataTypes.STRING,
   fileSize: DataTypes.INTEGER,
+  author: DataTypes.STRING,
+  downloads: DataTypes.INTEGER,
 });
 
 module.exports = File;

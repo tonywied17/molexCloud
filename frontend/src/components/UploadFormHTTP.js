@@ -1,5 +1,6 @@
 import React, { useState, forwardRef } from 'react';
 import { uploadFileChunk } from '../services/api';
+import { formatFileSize } from '../services/helpers';
 
 const UploadFormHTTP = forwardRef(({ onUploadSuccess }, ref) => {
   const [file, setFile] = useState(null);
@@ -56,18 +57,6 @@ const UploadFormHTTP = forwardRef(({ onUploadSuccess }, ref) => {
       }
     }
   };
-
-  function formatFileSize(bytes) {
-    if (bytes >= 1024 * 1024 * 1024) {
-      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-    } else if (bytes >= 1024 * 1024) {
-      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-    } else if (bytes >= 1024) {
-      return (bytes / 1024).toFixed(2) + ' KB';
-    } else {
-      return bytes + ' bytes';
-    }
-  }
 
   return (
     <div ref={ref} className='uploadFormDiv'>

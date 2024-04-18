@@ -18,7 +18,7 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
       onRegisterSuccess();
     } catch (error) {
       let errorMessage = error.response.data.error;
-      if (error.response.status === 400) {
+      if (error.response.status === 401) {
         alert(errorMessage);
       }
       console.error('Error registering user:', error);

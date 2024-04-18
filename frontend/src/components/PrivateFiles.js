@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { downloadFile } from '../services/api';
 import { getMimeIcon } from '../services/helpers';
+import { formatFileSize } from '../services/helpers';
 
 const PrivateFiles = ({ files }) => {
   const [searchText, setSearchText] = useState('');
@@ -20,13 +21,13 @@ const PrivateFiles = ({ files }) => {
               ...prevExpandedYears[year]?.[month],
               [day]: true,
             },
-           
+
           },
         }));
       }
     }
   }, [files]);
-  
+
   const findMostRecentDate = (fileList) => {
     let mostRecentDate;
     fileList.forEach((file) => {
@@ -41,7 +42,7 @@ const PrivateFiles = ({ files }) => {
     console.log('Most recent date:', mostRecentDate);
     return mostRecentDate;
   };
-  
+
 
   if (!files) {
     return <p>Loading...</p>;
@@ -159,13 +160,22 @@ const PrivateFiles = ({ files }) => {
                                             <i className="fa-solid fa-link"></i>
                                           </button>
                                         </div>
-                                        <div className='fileTypeIconContainer'>
-                                          <i className={`fileDetailsMimeType fa-regular ${getMimeIcon(file.fileType)}`}></i>
-                                          <span>{file.fileType}</span>
+                                        <div className='fileDeets'>
+                                          <div className='fileTypeIconContainer'>
+                                            <i className={`fileDetailsMimeType fa-regular ${getMimeIcon(file.fileType)}`}></i>
+                                            <span>{file.fileType}</span>
+                                            <div>{formatFileSize(file.fileSize)}</div>
+                                          </div>
+                                          <div className='fileAttribs'>
+                                            
+                                            
+                                            <div>{file.downloads} downloads</div>
+                                            <div>added by {file.author}</div>
+                                          </div>
                                         </div>
+
                                       </div>
                                       <div className='fileButtonsContainer'>
-
                                         <button
                                           className='button downloadFile'
                                           onClick={() => downloadFile(file.id, file.filename)}

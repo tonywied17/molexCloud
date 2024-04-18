@@ -8,7 +8,7 @@ async function register(req, res) {
   try {
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
+      return res.status(401).json({ error: 'Username already exists' });
     }
 
     let userInvite;
@@ -17,7 +17,7 @@ async function register(req, res) {
     } else {
       userInvite = await UserInvite.findOne({ where: { code: inviteCode, isUsed: false } });
       if (!userInvite) {
-        return res.status(400).json({ error: 'Invalid or expired invite code' });
+        return res.status(401).json({ error: 'Invalid or expired invite code' });
       }
       userInvite.isUsed = true;
       await userInvite.save();
@@ -34,19 +34,18 @@ async function register(req, res) {
   }
 }
 
-
 //! User login
 async function login(req, res) {
   const { username, password } = req.body;
   try {
     const user = await User.findOne({ where: { username } });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'User not found' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid password' });
     }
 
     // ? Sign a token with the user ID and username and send it back to the client

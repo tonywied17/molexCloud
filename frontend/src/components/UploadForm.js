@@ -25,10 +25,13 @@ const UploadForm = forwardRef(({ onUploadSuccess }, ref) => {
   
     const token = localStorage.getItem('token');
     let userId = null;
+    let username = null;
     if(token) {
       const payload = JSON.parse(atob(token.split('.')[1]));
       userId = payload.userId;
+      username = payload.username;
       console.log('User ID:', userId);
+      console.log('Username:', username);
     }
 
     socket.onopen = () => {
@@ -37,6 +40,7 @@ const UploadForm = forwardRef(({ onUploadSuccess }, ref) => {
         size: file.size,
         mimeType: file.type,
         isPrivate: isPrivate,
+        author: username,
         userId: userId,
       };
       console.log('Sending metadata:', metadata);

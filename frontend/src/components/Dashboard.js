@@ -8,7 +8,7 @@ import UploadFormHTTP from './UploadFormHTTP';
 import PrivateFiles from './PrivateFiles';
 import UserFiles from './UserFiles';
 import InviteCodeForm from './InviteCodeForm';
-import { getPublicFiles, getPrivateFiles, getUsersFiles } from '../services/api';
+import { getAllFiles } from '../services/api';
 import { AuthContext } from '../contexts/AuthContext';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
@@ -18,9 +18,20 @@ import AddIcon from '@mui/icons-material/Add';
 import KeyIcon from '@mui/icons-material/Key';
 
 const Dashboard = () => {
-  const [publicFiles, setPublicFiles] = useState([]);
-  const [privateFiles, setPrivateFiles] = useState([]);
-  const [userFiles, setUserFiles] = useState([]);
+  const [files, setFiles] = useState({
+    publicFiles: {
+      files: [],
+      fileTypeCounts: {}
+    },
+    privateFiles: {
+      files: [],
+      fileTypeCounts: {}
+    },
+    userFiles: {
+      files: [],
+      fileTypeCounts: {}
+    }
+  });
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
@@ -38,30 +49,45 @@ const Dashboard = () => {
   const inviteCodeFormRef = useRef(null);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      getPrivateFiles()
+
+      getAllFiles()
         .then(response => {
-          setPrivateFiles(response);
+          console.log('Response:', response);
+          console.log(response.publicFiles);
+          console.log(response.privateFiles);
+          console.log(response.userFiles);
+          if(!isLoggedIn) {
+            const fileData = {
+              publicFiles: {
+                files: response.publicFiles ? response.publicFiles : [],
+                fileTypeCounts: response.publicFileTypeCounts ? response.publicFileTypeCounts : {}
+              }
+            };
+            setFiles(fileData);
+          } else{
+            const fileData = {
+              publicFiles: {
+                files: response.publicFiles ? response.publicFiles : [],
+                fileTypeCounts: response.publicFileTypeCounts ? response.publicFileTypeCounts : {}
+              },
+              privateFiles: {
+                files: response.privateFiles ? response.privateFiles : [],
+                fileTypeCounts: response.privateFileTypeCounts ? response.privateFileTypeCounts : {}
+              },
+              userFiles: {
+                files: response.userFiles ? response.userFiles : [],
+                fileTypeCounts: response.userFileTypeCounts ? response.userFileTypeCounts : {}
+              }
+            };
+            setFiles(fileData);
+          }
+          
+          
         })
-        .catch(error => console.error('Error fetching private files:', error));
-      getUsersFiles()
-        .then(response => {
-          setUserFiles(response);
-        })
-        .catch(error => console.error('Error fetching users files:', error));
-    } else {
-      setPrivateFiles([]);
-      setUserFiles([]);
-    }
+        .catch(error => console.error('Error fetching files:', error));
+
   }, [isLoggedIn]);
   
-
-  useEffect(() => {
-    getPublicFiles()
-      .then(response => setPublicFiles(response))
-      .catch(error => console.error('Error fetching public files:', error));
-  }, []);
-
   useEffect(() => {
     console.log('Effect triggered');
     const handleOutsideClick = (event) => {
@@ -125,6 +151,7 @@ const Dashboard = () => {
 
   const handleLoginSuccess = () => {
     setShowLoginForm(false);
+    fetchFiles();
   };
 
   const handleRegisterSuccess = () => {
@@ -133,25 +160,27 @@ const Dashboard = () => {
 
   const fetchFiles = async () => {
     try {
-
-      const publicFilesResponse = await getPublicFiles();
-      setPublicFiles(publicFilesResponse);
-
-      if (isLoggedIn) {
-
-        const privateFilesResponse = await getPrivateFiles();
-        console.log('Private files response:', privateFilesResponse);
-        setPrivateFiles(privateFilesResponse);
-
-        const usersFilesResponse = await getUsersFiles();
-        console.log('Users files response:', usersFilesResponse);
-        setUserFiles(usersFilesResponse);
-
-      }
+      const response = await getAllFiles();
+      const filesData = {
+        publicFiles: {
+          files: response.publicFiles ? response.publicFiles : [],
+          fileTypeCounts: response.publicFileTypeCounts ? response.publicFileTypeCounts : {}
+        },
+        privateFiles: {
+          files: response.privateFiles ? response.privateFiles : [],
+          fileTypeCounts: response.privateFileTypeCounts ? response.privateFileTypeCounts : {}
+        },
+        userFiles: {
+          files: response.userFiles ? response.userFiles : [],
+          fileTypeCounts: response.userFileTypeCounts ? response.userFileTypeCounts : {}
+        }
+      };
+      setFiles(filesData);
     } catch (error) {
       console.error('Error fetching files:', error);
     }
   };
+  
 
   const handleUploadSuccess = async () => {
     setShowUploadForm(false);
@@ -160,7 +189,7 @@ const Dashboard = () => {
       await fetchFiles();
     }, 300);
   };
-
+  
   const handleLogoClick = () => {
     fetchFiles();
     setActiveTab('public');
@@ -234,9 +263,9 @@ const Dashboard = () => {
           )}
         </div>
         <div className='tabsContent'>
-          {activeTab === 'public' && <PublicFiles files={publicFiles} />}
-          {activeTab === 'private' && isLoggedIn && <PrivateFiles files={privateFiles} />}
-          {activeTab === 'users' && isLoggedIn && <UserFiles files={userFiles} />}
+          {activeTab === 'public' && <PublicFiles files={files.publicFiles} />}
+          {activeTab === 'private' && isLoggedIn && <PrivateFiles files={files.privateFiles} />}
+          {activeTab === 'users' && isLoggedIn && <UserFiles files={files.userFiles} />}
         </div>
       </div>
     </div>

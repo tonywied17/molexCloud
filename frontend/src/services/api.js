@@ -29,50 +29,23 @@ export const loginUser = async ({ username, password }) => {
   }
 };
 
-//! Get public files
-export const getPublicFiles = async () => {
-  try {
-    const response = await api.get('/files');
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-//! Get private files
-export const getPrivateFiles = async () => {
+// ! Get all files
+export const getAllFiles = async () => {
   try {
     const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Token not found in localStorage');
+    const headers = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      console.log('Token:', token);
     }
 
-    const response = await api.get('/files/private', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const response = await api.get('/files', {
+      headers,
     });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-//! Get users files
-export const getUsersFiles = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Token not found in localStorage');
-    }
-
-    const response = await api.get(`/files/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    console.log(response.data);
-    return response.data;
+    console.log('Response:', response.data);
+    let { publicFiles, publicFileTypeCounts, privateFiles, privateFileTypeCounts, userFiles, userFileTypeCounts } = response.data;
+    return { publicFiles, publicFileTypeCounts, privateFiles, privateFileTypeCounts, userFiles, userFileTypeCounts };
   } catch (error) {
     throw error;
   }

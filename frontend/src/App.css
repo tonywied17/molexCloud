@@ -30,7 +30,6 @@
     min-width: 300px !important;
     width: 90vw !important;
     top: 45% !important;
-    background: #060606f0 !important;
   }
   .filesHeader {
     flex-direction: column !important;
@@ -100,10 +99,37 @@ html, body {
   width: 70vw;
 }
 
+.fileAttribs {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  padding-right: 1em;
+}
+
+
+.fileAttribs div:nth-child(1) {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.fileAttribs div:nth-child(2) {
+  font-size: 0.8rem;
+  font-weight: 300;
+}
+
+.fileDeets {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  justify-content: space-between;
+}
+
 .fileButtonsContainer {
   display: flex;
   gap: 5px;
-  flex-direction: row;
+  flex-direction: column;
   align-items: stretch;
 }
 
@@ -216,6 +242,10 @@ h2 {
 }
 
 .uploadFormDiv .button{
+  border: 1px solid #b3b3b357 !important;
+}
+
+.authFormFields .button{
   border: 1px solid #b3b3b357 !important;
 }
 
@@ -427,7 +457,7 @@ h2 {
   padding: 0.5em;
   gap: 10px;
   align-items: center;
-  background: #111111e3;
+  background: #060606f0;
   backdrop-filter: blur(5px);
   align-content: space-between;
   border-radius: 5px;
@@ -545,19 +575,19 @@ h2 {
   gap: 10px;
   align-items: flex-end;
   justify-content: center;
-  margin-top: 2em;
-  position: fixed;
-  top: 25%;
+  position: absolute;
+  top: 15%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 3;
   min-width: 425px;
 }
 
+
 .authFormFields {
   display: flex;
   flex-direction: column;
-  background: #111111e3;
+  background: #060606f0;
   backdrop-filter: blur(10px);
   padding: 1em;
   gap: 10px;
@@ -696,6 +726,7 @@ input[type="checkbox"] {
   align-items: center;
   gap: 0.5em;
   user-select: none;
+  padding-left: 1em;
 }
 
 .fileTypeIconContainer span {

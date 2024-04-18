@@ -101,30 +101,19 @@ class FileUploadSession {
           this.writeStream.end();
           console.log('File upload ended. Closing writeStream and inserting record.');
 
-          const { filename, isPrivate, mimeType, userId } = this.metadata;
-          console.log('!!!!!!!! ' + this.metadata + ' !!!!!!!!');
-          const existingFile = await File.findOne({ where: { filename: filename } });
-          if (existingFile) {
-            console.log('File already exists. Updating record...');
-            await existingFile.update({
-              filename: filename,
-              path: this.filePath,
-              isPrivate: isPrivate,
-              fileType: mimeType || 'unknown',
-              fileSize: this.totalSize,
-              UserId: userId
-            });
-          } else {
-            console.log('Creating file record...');
-            await File.create({
-              filename: filename,
-              path: this.filePath,
-              isPrivate: isPrivate,
-              fileType: mimeType || 'unknown',
-              fileSize: this.totalSize,
-              UserId: userId
-            });
-          }
+          const { filename, isPrivate, mimeType, userId, author } = this.metadata;
+
+          console.log('Creating file record...');
+          await File.create({
+            filename: filename,
+            path: this.filePath,
+            isPrivate: isPrivate,
+            fileType: mimeType || 'unknown',
+            fileSize: this.totalSize,
+            author: author,
+            downloads: 0,
+            UserId: userId
+          });
 
           this.ws.close();
 
@@ -151,6 +140,10 @@ const UPLOAD_TIMEOUT = 60000;
 
 function randomString() {
   return Math.random().toString(36).substring(2, 7);
+}
+
+function uniqueFilename(filename) {
+  return `${filename}-${uuidv4()}`;
 }
 
 module.exports = { FileUploadSession };

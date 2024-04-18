@@ -7,15 +7,6 @@ const multer = require('multer');
 //! UnProtected route for fetching files
 router.get('/', fileController.getAllFiles);
 
-//! Protected route for fetching private files
-router.get('/private', authenticateToken, fileController.getPrivateFiles);
-
-//! User's files
-router.get('/user', authenticateToken, fileController.getFilesByAuthor);
-
-//! Add route to get unique file types and their counts
-router.get('/filetypes', fileController.getFileTypesCounts);
-
 //? Multer configuration for file upload via HTTP
 const upload = multer({
   storage: multer.diskStorage({

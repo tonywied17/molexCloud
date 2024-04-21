@@ -11,6 +11,7 @@ const fs = require('fs');
 const { FileUploadSession } = require('./sessions/FileUploadSession');
 require('dotenv').config();
 const { Sequelize } = require("./models");
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * * --- Express Server ---
@@ -38,6 +39,15 @@ httpsServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+//! File upload middleware
+app.use(fileUpload(
+  {
+    limits: { fileSize: Infinity },
+    abortOnLimit: true,
+    responseOnLimit: 'File size limit has been reached',
+  }
+));
+
 //! Routes
 app.use('/files', fileRoutes);
 app.use('/auth', authRoutes);
@@ -62,14 +72,6 @@ app.get('/', (req, res) => {
   });
 });
 
-//! File upload middleware
-app.use(fileUpload(
-  {
-    limits: { fileSize: Infinity },
-    abortOnLimit: true,
-    responseOnLimit: 'File size limit has been reached',
-  }
-));
 
 /**
  * * --- Websocket server ---
@@ -77,69 +79,59 @@ app.use(fileUpload(
 //! Websocket server
 const wss = new WebSocket.Server({ server: httpsServer });
 const activeSessions = new Map();
+const sessionIDGeneration = uuidv4();
 
 // ! Websocket connection
 wss.on('connection', (ws) => {
 console.log('WebSocket connection opened');
 
   // ? Create new file upload session
-  const session = new FileUploadSession(ws);
+  const session = new FileUploadSession(ws, sessionIDGeneration);
   activeSessions.set(session.id, session); 
 
   // ! Websocket message
   ws.on('message', async (message) => {
     try {
-      // ? Get active session
       const activeSession = activeSessions.get(session.id);
       if (!activeSession) {
         console.error('Session not found.');
         return;
       }
-
-      // * No metadata received yet
-      if (!session.metadataReceived) {
+  
+      if (!activeSession.metadataReceived) {
         const data = JSON.parse(message);
-
-        // ? Handle file upload metadata
         if (data.type === 'file_upload_metadata') {
-          await session.handleFileUpload(data.payload);
-
+          await activeSession.handleFileUpload(data.payload);
         } else {
           console.error('Invalid message format: Metadata not received first');
-          session.ws.send(JSON.stringify({ error: 'Invalid message format: Metadata not received first' }));
+          activeSession.ws.send(JSON.stringify({ error: 'Invalid message format: Metadata not received first' }));
         }
-
-      // * Metadata received
       } else {
-
-        // ? Handle file chunk
         if (Buffer.isBuffer(message)) {
-          await session.handleChunk(message);
-          
+          await activeSession.handleChunk(message);
         } else {
           console.error('Invalid message format: Expected file chunk');
-          session.ws.send(JSON.stringify({ error: 'Invalid message format: Expected file chunk' }));
+          activeSession.ws.send(JSON.stringify({ error: 'Invalid message format: Expected file chunk' }));
         }
       }
     } catch (error) {
-      console.error('Error parsing message:', error);
-      const session = activeSessions.get(session.id);
-      if (session) {
-        session.ws.send(JSON.stringify({ error: 'Invalid message format' }));
-      } else {
-        console.error('Session is not defined.');
+      console.error('Error during file upload:', error);
+      const activeSession = activeSessions.get(session.id);
+      if (activeSession.writeStream) {
+        activeSession.writeStream.end();
       }
+      activeSession.ws.send(JSON.stringify({ error: 'An error occurred during file upload. Please retry.' }));
     }
   });
 
   //! Websocket close
   ws.on('close', () => {
-    console.log('WebSocket connection closed');
-    
-    // ? Remove session from active sessions
     const activeSession = activeSessions.get(session.id);
     if (activeSession) {
       activeSessions.delete(session.id);
+      if (activeSession.writeStream) {
+        activeSession.writeStream.end();
+      }
     }
   });
 });

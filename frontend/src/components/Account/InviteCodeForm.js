@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef } from 'react';
-import { generateInviteCode, getUserInviteCodes, deleteUserInviteCode } from '../services/api';
+import { generateInviteCode, getUserInviteCodes, deleteUserInviteCode } from '../../services/api';
 
 const InviteCodeForm = forwardRef(({ onInviteCodeGenerated }, ref) => {
   const [isLoading, setIsLoading] = useState(false);

@@ -1,26 +1,27 @@
 import React, { useState, useContext, forwardRef } from 'react';
-import { loginUser } from '../services/api';
-import { AuthContext } from '../contexts/AuthContext';
+import { registerUser, } from '../../services/api';
+import { AuthContext } from '../../contexts/AuthContext'; 
 
-const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
+const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await loginUser({ username, password });
-      console.log('Login response:', response.token);
+      const response = await registerUser({ username, password, inviteCode }); 
       localStorage.setItem('token', response.token);
       setIsLoggedIn(true);
-      onLoginSuccess();
+      alert('User registered successfully');
+      onRegisterSuccess();
     } catch (error) {
       let errorMessage = error.response.data.error;
       if (error.response.status === 401) {
         alert(errorMessage);
       }
-      console.error('Error logging in:', error);
+      console.error('Error registering user:', error);
     }
   };
 
@@ -28,7 +29,7 @@ const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
     <div>
       <div ref={ref} className='authFormContainer'>
         <form className='authFormFields' onSubmit={handleSubmit}>
-          <div>Logging back in...</div>
+          <div>Create an account...</div>
           <div className='inputField'>
             <label>Username:</label>
             <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -37,11 +38,15 @@ const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
             <label>Password:</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <button className='button' type="submit">Login</button>
+          <div className='inputField'>
+            <label>Invite Code:</label>
+            <input type="text" value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} />
+          </div>
+          <button className='button' type="submit">Register</button>
         </form>
       </div>
     </div>
   );
 });
 
-export default LoginForm;
+export default RegisterForm;

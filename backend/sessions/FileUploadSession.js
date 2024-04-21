@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const File = require('../models/File');
 const { v4: uuidv4 } = require('uuid');
-
+// todo: send session id from client to backend with every message
+let rand = uuidv4();
 //! File upload session class (Create a new instance for each file upload session)
 // ws: WebSocket instance
 // id: Unique session ID
@@ -19,8 +20,9 @@ const { v4: uuidv4 } = require('uuid');
 // handleChunk: Method to handle file chunk
 class FileUploadSession {
   constructor(ws) {
-    this.id = uuidv4();
+    this.id = rand;
     this.ws = ws;
+    this.ws.sessionId = rand;
     this.metadataReceived = false;
     this.metadata = {};
     this.writeStream = null;
@@ -73,9 +75,9 @@ class FileUploadSession {
         this.ws.send(JSON.stringify({ error: 'Metadata not received first' }));
         return;
       }
-
+  
       clearTimeout(this.uploadTimer);
-
+  
       this.uploadTimer = setTimeout(() => {
         this.writeStream.end();
         fs.unlinkSync(this.filePath);
@@ -83,26 +85,32 @@ class FileUploadSession {
         this.ws.send(JSON.stringify({ error: 'File upload timed out' }));
         this.ws.close();
       }, UPLOAD_TIMEOUT);
-
+  
       const endOfFileMarker = 'file_upload_end';
       const markerIndex = chunkData.indexOf(endOfFileMarker);
-
+  
       if (markerIndex !== -1) {
+        clearTimeout(this.uploadTimer);
         this.ws.send(JSON.stringify({ success: true }));
         console.log('End of file marker found.');
         const chunk = Buffer.from(chunkData.slice(0, markerIndex));
-
-        this.writeStream.write(chunk, 'binary');
-
+  
+        if (this.writeStream) {
+          this.writeStream.write(chunk, 'binary');
+        } else {
+          console.error('WriteStream is null. Cannot write chunk.');
+          return;
+        }
+  
         console.log('Total bytes sent:', this.totalBytesSent);
         console.log('File size:', this.totalSize);
-
+  
         if (this.totalBytesSent === this.totalSize) {
           this.writeStream.end();
           console.log('File upload ended. Closing writeStream and inserting record.');
-
+  
           const { filename, isPrivate, mimeType, userId, author } = this.metadata;
-
+  
           console.log('Creating file record...');
           await File.create({
             filename: filename,
@@ -114,19 +122,19 @@ class FileUploadSession {
             downloads: 0,
             UserId: userId
           });
-
+  
           this.ws.close();
-
-          clearTimeout(this.uploadTimer);
-          this.metadataReceived = false;
-          this.metadata = {};
-          this.writeStream = null;
-          this.totalBytesSent = 0;
         }
       } else {
         const chunk = Buffer.from(chunkData);
-        this.writeStream.write(chunk, 'binary');
-        this.totalBytesSent += chunk.byteLength;
+  
+        if (this.writeStream) {
+          this.writeStream.write(chunk, 'binary');
+          this.totalBytesSent += chunk.byteLength;
+        } else {
+          console.error('WriteStream is null. Cannot write chunk.');
+          return;
+        }
       }
     } catch (error) {
       console.error('Error handling file chunk:', error);
@@ -140,10 +148,6 @@ const UPLOAD_TIMEOUT = 60000;
 
 function randomString() {
   return Math.random().toString(36).substring(2, 7);
-}
-
-function uniqueFilename(filename) {
-  return `${filename}-${uuidv4()}`;
 }
 
 module.exports = { FileUploadSession };

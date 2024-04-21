@@ -11,7 +11,7 @@ const path = require('path');
 const { File, User } = require('../models');
 const { pipeline } = require('stream/promises');
 const { authenticateToken } = require('../middleware/authMiddleware');
-
+const { v4: uuidv4 } = require('uuid');
 
 //! Get all files
 async function getAllFiles(req, res) {
@@ -76,19 +76,18 @@ async function uploadFileChunkHTTP(req, res) {
     const isPrivate = req.headers.isprivate === 'true';
     const totalChunks = parseInt(req.headers.totalchunks);
     const chunkNumber = parseInt(req.headers.chunknumber);
-    const userId = req.user.userId.toString();
-    const author = req.user.username;
-    const fileName = chunk.name;
+    const fileName = req.files.chunk.name;
     let chunk = req.files.chunk;
 
-    const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
-    const tempDirectory = path.join(__dirname, '../../uploads/temp');
+    const sessionId = req.body.sessionId;
+
+    const userId = req.user.userId.toString();
+    const author = req.user.username;
+
+    const tempDirectory = path.join(__dirname, `../../uploads/temp/${sessionId}`);
     await fsPromises.mkdir(tempDirectory, { recursive: true });
 
-    const tempChunkDirectory = path.join(tempDirectory, `${userId}-${fileNameWithoutExtension}`);
-    await fsPromises.mkdir(tempChunkDirectory, { recursive: true });
-
-    const filePath = path.join(tempChunkDirectory, `${chunkNumber}.chunk`);
+    const filePath = path.join(tempDirectory, `${chunkNumber}.chunk`);
     await chunk.mv(filePath);
 
     console.log('Chunk ' + chunkNumber + '/' + totalChunks + ' uploaded successfully:', fileName);
@@ -96,15 +95,15 @@ async function uploadFileChunkHTTP(req, res) {
     if (chunkNumber === totalChunks) {
       console.log('All chunks uploaded successfully');
 
-      const finalDirectoryPath = path.join(__dirname, `../../uploads/${userId}`);
+      const finalDirectoryPath = path.join(__dirname, `../../uploads/${sessionId}`);
       await fsPromises.mkdir(finalDirectoryPath, { recursive: true });
 
       const finalFilePath = path.join(finalDirectoryPath, fileName);
-      const finalFileStream = fs.createWriteStream(finalFilePath, { flags: 'a' });
+      const finalFileStream = fs.createWriteStream(finalFilePath, { flags: 'a' })
 
       try {
         for (let i = 1; i <= totalChunks; i++) {
-          const chunkPath = path.join(tempChunkDirectory, `${i}.chunk`);
+          const chunkPath = path.join(tempDirectory, `${i}.chunk`);
           console.log('Processing chunk:', chunkPath);
           const readStream = fs.createReadStream(chunkPath);
           await pipeline(readStream, finalFileStream, { end: false });
@@ -113,7 +112,14 @@ async function uploadFileChunkHTTP(req, res) {
 
         finalFileStream.end();
 
-        await fsPromises.rmdir(tempChunkDirectory, { recursive: true });
+        fsPromises.rm(tempDirectory, { recursive: true }, (err) => {
+          if (err) {
+            console.error('Error removing temporary directory:', err);
+          } else {
+            console.log('Temporary directory removed successfully');
+          }
+        });
+        
         console.log(`File ${fileName} assembled successfully`);
 
         // ? Insert or update file record in database
@@ -190,8 +196,49 @@ async function downloadFile(req, res) {
   }
 }
 
+//! Delete a file
+async function deleteFile(req, res) {
+  try {
+
+    const fileId = req.params.id;
+    const file = await File.findByPk(fileId);
+
+    if (!file) {
+      return res.status(404).json({ error: '[ERROR] File not found' });
+    }
+    const filePath = file.path;
+    await file.destroy();
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(400).json({ error: '[WARNING] File not found on server? Removing database record..' });
+    }
+
+    if (req.user.userId !== file.UserId) {
+      return res.status(400).json({ error: '[ERROR] Not your file to delete!' });
+    }
+    
+    await fsPromises.unlink(filePath);
+    await file.destroy();
+
+    res.json({ message: '[SUCCESS] File deleted successfully' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+function randomString() {
+  return Math.random().toString(36).substring(2, 7);
+}
+
+function uniqueFilename(filename) {
+  return `${filename}-${uuidv4()}`;
+}
+
 module.exports = {
   uploadFileChunkHTTP,
   getAllFiles,
-  downloadFile
+  downloadFile,
+  deleteFile
 };

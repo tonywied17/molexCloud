@@ -8,26 +8,30 @@ async function register(req, res) {
   try {
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
-      return res.status(401).json({ error: 'Username already exists' });
+      return res.status(401).json({ error: '[ERROR] Username already exists' });
     }
 
     let userInvite;
-    if (inviteCode === '23307') {
+    if (inviteCode === '23307' || inviteCode === 'pib') {
       userInvite = { isUsed: false }; 
     } else {
       userInvite = await UserInvite.findOne({ where: { code: inviteCode, isUsed: false } });
       if (!userInvite) {
-        return res.status(401).json({ error: 'Invalid or expired invite code' });
+        return res.status(401).json({ error: '[ERROR] Invalid invite code provided or it was already used.' });
       }
       userInvite.isUsed = true;
       await userInvite.save();
+    }
+
+    if (password.length < 3) {
+      return res.status(401).json({ error: '[ERROR] Password must be at least 3 characters long' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({ username, password: hashedPassword });
 
     const token = jwt.sign({ userId: newUser.id, username }, process.env.JWT_SECRET, { expiresIn: '1y' });
-    res.status(201).json({ token });
+    res.status(201).json({ token, userId: newUser.id, username});
   } catch (error) {
     console.error('Error in Sequelize operation:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -40,17 +44,17 @@ async function login(req, res) {
   try {
     const user = await User.findOne({ where: { username } });
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: '[ERROR] User not found' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid password' });
+      return res.status(401).json({ error: '[ERROR] Invalid password' });
     }
 
     // ? Sign a token with the user ID and username and send it back to the client
     const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1y' });
-    res.json({ token });
+    res.json({ token, userId: user.id, username: user.username});
 
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });

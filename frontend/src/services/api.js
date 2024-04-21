@@ -37,13 +37,11 @@ export const getAllFiles = async () => {
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('Token:', token);
     }
 
     const response = await api.get('/files', {
       headers,
     });
-    console.log('Response:', response.data);
     let { publicFiles, publicFileTypeCounts, privateFiles, privateFileTypeCounts, userFiles, userFileTypeCounts } = response.data;
     return { publicFiles, publicFileTypeCounts, privateFiles, privateFileTypeCounts, userFiles, userFileTypeCounts };
   } catch (error) {
@@ -93,7 +91,7 @@ export const downloadFile = async (fileId, fileName) => {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await api.get(`/files/download/${fileId}`, {
+    const response = await api.get(`/files/${fileId}`, {
       responseType: 'blob',
       headers: {
         Authorization: `Bearer ${token}`
@@ -112,6 +110,25 @@ export const downloadFile = async (fileId, fileName) => {
 
     return response;
   } catch (error) {
+    throw error;
+  }
+};
+
+// ! Delete file
+export const deleteFile = async (fileId) => {
+
+  try {
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await api.delete(`/files/${fileId}`, { headers });
+    return response;
+  } catch (error) {
+    if (error.response.status === 400) {
+      return error.response;
+    }
     throw error;
   }
 };

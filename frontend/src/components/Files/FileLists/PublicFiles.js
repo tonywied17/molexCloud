@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { downloadFile } from '../services/api';
-import { getMimeIcon } from '../services/helpers';
-import { formatFileSize } from '../services/helpers';
+import React, { useState, useEffect, useContext } from 'react';
+import { downloadFile, deleteFile } from '../../../services/api';
+import { getMimeIcon } from '../../../services/helpers';
+import { formatFileSize } from '../../../services/helpers';
+import { AuthContext } from '../../../contexts/AuthContext';
 
-const UserFiles = ({ files }) => {
+const PublicFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
   const [searchText, setSearchText] = useState('');
   const [expandedYears, setExpandedYears] = useState({});
-
+  const { isLoggedIn, userId } = useContext(AuthContext);
 
   useEffect(() => {
     if (files && files.files) {
@@ -39,7 +40,6 @@ const UserFiles = ({ files }) => {
         mostRecentDate = { year, month, day, date };
       }
     });
-    console.log('Most recent date:', mostRecentDate);
     return mostRecentDate;
   };
 
@@ -90,6 +90,37 @@ const UserFiles = ({ files }) => {
         },
       },
     }));
+  };
+  
+  const handleDeleteFile = (fileId) => async () => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this file?');
+    if (!confirmDelete) {
+      return;
+    }
+    
+    try {
+      const response = await deleteFile(fileId);
+      
+      if(response.status === 400) {
+        alert(response.data.error)
+      } 
+
+      onDeleteSuccess();
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    }
+  };
+  const handleFileDownload = async (fileId, filename) => {
+    try {
+      const response = await downloadFile(fileId, filename);
+    
+      onDownloadSuccess();
+
+      return response;
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      throw error;
+    }
   };
 
   const countItems = (year, month, day) => {
@@ -153,7 +184,7 @@ const UserFiles = ({ files }) => {
                                             className='button copyLink'
                                             onClick={() =>
                                               copyToClipboard(
-                                                'https://molex.cloud/api/files/download/' + file.id
+                                                'https://molex.cloud/api/files/' + file.id
                                               )
                                             }
                                           >
@@ -168,9 +199,9 @@ const UserFiles = ({ files }) => {
                                           </div>
                                           <div className='fileAttribs'>
                                             
-                                            
                                             <div>{file.downloads} downloads</div>
-                                            <div>added by {file.author}</div>
+                                            {isLoggedIn && file.UserId === userId ? <div>added by you</div> : <div>added by {file.author}</div>}
+
                                           </div>
                                         </div>
 
@@ -178,10 +209,11 @@ const UserFiles = ({ files }) => {
                                       <div className='fileButtonsContainer'>
                                         <button
                                           className='button downloadFile'
-                                          onClick={() => downloadFile(file.id, file.filename)}
-                                        >
+                                          onClick={() => handleFileDownload(file.id, file.filename)}
+                                          >
                                           Download
                                         </button>
+                                        {isLoggedIn && file.UserId === userId && <button className='button deleteFile' onClick={handleDeleteFile(file.id)}>Delete</button>}
                                       </div>
                                     </div>
                                   ))}
@@ -233,7 +265,7 @@ const UserFiles = ({ files }) => {
   );
 };
 
-export default UserFiles;
+export default PublicFiles;
 
 // Function to group files by date
 const groupFilesByDate = (files) => {

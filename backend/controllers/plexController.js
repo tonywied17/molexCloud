@@ -88,7 +88,20 @@ const refreshPlexLibraries = async (title) => {
 
 const getItems = async (req, res) => {
     try {
-        const plexItems = await PlexItem.findAll();
+        let plexItems;
+
+        const count = parseInt(req.query.count);
+
+        if (!isNaN(count) && count > 0) {
+            plexItems = await PlexItem.findAll({ 
+                limit: count,
+                order: [['createdAt', 'DESC']] 
+            });
+        } else {
+            plexItems = await PlexItem.findAll({
+                order: [['createdAt', 'DESC']] 
+            });
+        }
 
         res.json({ data: plexItems });
     } catch (error) {

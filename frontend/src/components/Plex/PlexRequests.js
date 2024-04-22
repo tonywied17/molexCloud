@@ -1,7 +1,7 @@
 import React, { forwardRef, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchIMDb, getIMDbDetails, sendToDiscordWebhook } from '../../services/imdb';
-import { cap } from '../../services/helpers';
+import { cap, replaceSpecialCharacters } from '../../services/helpers';
 import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
 import axios from 'axios';
@@ -28,7 +28,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const handleAutoSearch = async (imdbID) => {
         try {
             const details = await getIMDbDetails(imdbID);
-            const inLibrary = await checkInLibrary(details.Title);
+            const inLibrary = await checkInLibrary(details.Title, details.Year);
             setSelectedResult({ ...details, inLibrary }); 
         } catch (error) {
             console.error('Error fetching IMDb details:', error);
@@ -47,7 +47,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         try {
             const results = await searchIMDb(searchTerm, searchYear);
             const resultsWithLibraryInfo = await Promise.all(results.map(async (result) => {
-                const inLibrary = await checkInLibrary(result.Title);
+                const inLibrary = await checkInLibrary(result.Title, result.Year);
                 return { ...result, inLibrary };
             }));
             setSearchResults(resultsWithLibraryInfo);
@@ -62,7 +62,6 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     };
 
     const handleSelect = async (result) => {
-        console.log("Selected IMDb ID:", result);
         const details = await getIMDbDetails(result);
         setSelectedResult(details);
         onRequestSuccess(result);
@@ -80,14 +79,18 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const checkInLibrary = async (title, year) => {
         try {
             const sectionIds = [5, 8];
+            const imdbTitle = replaceSpecialCharacters(title).toLowerCase(); 
             for (const sectionId of sectionIds) {
-                const response = await axios.get(`https://molex.cloud/api/plex/proxy?sectionId=${sectionId}&title=${title}`);
+                const response = await axios.get(`https://molex.cloud/api/plex/proxy?sectionId=${sectionId}&title=${imdbTitle}`);
                 let data = response.data.response.data.data;
-                console.log(data);
                 if (Array.isArray(data)) {
                     const matchingMedia = data.filter(media => {
-                        const titleMatch = media.title.trim().toLowerCase() === title.trim().toLowerCase();
-                        const yearMatch = year ? media.year === year : true;
+                        let plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
+                        if(plexTitle === 'the office (us)') {
+                            plexTitle = 'the office';
+                        }
+                        const titleMatch = imdbTitle.includes(plexTitle);
+                        const yearMatch = year.includes(media.year);
                         return titleMatch && yearMatch;
                     });
                     
@@ -104,8 +107,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             return false;
         }
     };
-    
-    
+
 
     return (
         <div ref={ref}>

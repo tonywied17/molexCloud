@@ -35,11 +35,11 @@ const PlexRecentlyAdded = () => {
                     </div>
                     <div className='resultPlot'>{item.plot}</div>
                     <div className='searchButtons'>
-                            <button className='button plexDetailsBtn' onClick={
+                            <button className='button plexDetailsBtn watchOnPlex' onClick={
                                 () => {
                                     window.open(`${item.plexUrl}`, '_blank')
                                 }
-                            }>View on Plex</button>
+                            }><i class="fa-solid fa-play"></i> Watch on Plex</button>
                         </div>
                 </div>
             ))}

@@ -1,4 +1,14 @@
-// routes/plexRoutes.js
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\routes\plexRoutes.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Sunday April 21st 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:44:11 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
 
 const express = require('express');
 const router = express.Router();
@@ -76,7 +86,7 @@ const routes = [
 
 routes.forEach(route => {
   const { method, path, middleware, handler, description } = route;
-  router[method](path, middleware, handler);
+  router[method](path, ...middleware, handler);
   console.log(`Registered route: [${method.toUpperCase()}] ${path} - ${description}`);
 });
 

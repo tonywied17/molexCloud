@@ -1,3 +1,15 @@
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\routes\fileRoutes.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Friday April 12th 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:44:17 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
+
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, authenticateBearerToken } = require('../middleware/authMiddleware');
@@ -48,7 +60,7 @@ const routes = [
 
 routes.forEach(route => {
   const { method, path, middleware, handler, description } = route;
-  router[method](path, middleware, handler);
+  router[method](path, ...middleware, handler);
   console.log(`Registered route: [${method.toUpperCase()}] ${path} - ${description}`);
 });
 

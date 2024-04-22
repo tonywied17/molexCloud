@@ -1,3 +1,15 @@
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\server.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Friday April 12th 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:42:20 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -7,19 +19,12 @@ const WebSocket = require('ws');
 const https = require('https');
 const fs = require('fs');
 const { FileUploadSession } = require('./sessions/FileUploadSession');
-require('dotenv').config();
 const { Sequelize } = require("./models");
 const { v4: uuidv4 } = require('uuid');
 
-// Route Files
-const { router: fileRoutes, routes: fileRoutesArray } = require('./routes/fileRoutes');
-const { router: authRoutes, routes: authRoutesArray } = require('./routes/authRoutes');
-const { router: plexRoutes, routes: plexRoutesArray } = require('./routes/plexRoutes');
+require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 
-
-/**
- * * --- Express Server ---
- */
+//! Express server setup
 // ? SSL certificate paths
 const privateKeyPath = path.resolve(__dirname, 'live/molex.cloud/privkey.pem');
 const certificatePath = path.resolve(__dirname, 'live/molex.cloud/fullchain.pem');
@@ -52,56 +57,74 @@ app.use(fileUpload(
   }
 ));
 
-// Routes
+//! Routes
+const { router: fileRoutes, routes: fileRoutesArray } = require('./routes/fileRoutes');
+const { router: authRoutes, routes: authRoutesArray } = require('./routes/authRoutes');
+const { router: plexRoutes, routes: plexRoutesArray } = require('./routes/plexRoutes');
 app.use('/files', fileRoutes);
 app.use('/auth', authRoutes);
 app.use('/plex', plexRoutes);
 
+//! API Documentation endpoint
 const endpoints = {
   message: 'Molex Cloud API',
   endpoints: {}
 };
-
+//? Build endpoint object for API documentation
 [fileRoutesArray, authRoutesArray, plexRoutesArray].forEach(routesArray => {
   routesArray.forEach(route => {
     const { method, path, middleware, description, prefix } = route;
+
+    let routeInfo = {
+      description: description
+    };
+
+    if (middleware.length > 0) {
+      let middlewareObject = {};
+      middleware.forEach(m => {
+        if (m.name === 'authenticateToken') {
+          middlewareObject[m.name] = 'Verifies JWT token signature';
+        } else if (m.name === 'authenticateBearerToken') {
+          middlewareObject[m.name] = 'Checks authorization headers for bearer token';
+        } else {
+          middlewareObject[m.name] = 'No description available';
+        }
+      });
+      routeInfo.middleware = middlewareObject;
+    }
 
     if (!endpoints.endpoints[prefix]) {
       endpoints.endpoints[prefix] = {};
     }
 
-    if (!endpoints.endpoints[prefix][method]) {
-      endpoints.endpoints[prefix][method] = {};
+    if (!endpoints.endpoints[prefix][method.toUpperCase()]) {
+      endpoints.endpoints[prefix][method.toUpperCase()] = {};
     }
 
-    endpoints.endpoints[prefix][method][path] = description;
+    endpoints.endpoints[prefix][method.toUpperCase()][path] = routeInfo;
   });
 });
 
-// Endpoint to display API information
+// ? API Documentation endpoint (https://molex.cloud/api)
 app.get('/', (req, res) => {
   const prettyEndpoints = JSON.stringify(endpoints, null, 2);
   res.header('Content-Type', 'application/json');
   res.send(prettyEndpoints);
 });
 
-/**
- * * --- Websocket server ---
- */
+
 //! Websocket server
 const wss = new WebSocket.Server({ server: httpsServer });
 const activeSessions = new Map();
 const sessionIDGeneration = uuidv4();
 
-// ! Websocket connection
+//? Websocket connection and session handling
 wss.on('connection', (ws) => {
   console.log('WebSocket connection opened');
-
-  // ? Create new file upload session
   const session = new FileUploadSession(ws, sessionIDGeneration);
   activeSessions.set(session.id, session);
 
-  // ! Websocket message
+  //? Websocket message
   ws.on('message', async (message) => {
     try {
       const activeSession = activeSessions.get(session.id);
@@ -136,7 +159,7 @@ wss.on('connection', (ws) => {
     }
   });
 
-  //! Websocket close
+  //? Websocket close
   ws.on('close', () => {
     const activeSession = activeSessions.get(session.id);
     if (activeSession) {
@@ -148,7 +171,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-
+//! Sequelize database sync
 Sequelize.sync().then(() => {
-  console.log("Shit synced");
+  console.log("Sequelize shit synced");
 });

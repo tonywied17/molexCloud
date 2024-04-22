@@ -1,5 +1,17 @@
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\middleware\authMiddleware.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Friday April 12th 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:44:51 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
+
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 //! Authenticate token middleware
 // req: Request object
 // res: Response object

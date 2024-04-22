@@ -1,9 +1,22 @@
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\controllers\plexController.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Monday April 22nd 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:44:58 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
+
 const { PlexItem } = require('../models');
 const axios = require('axios');
-require('dotenv').config();
+require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 const { Op } = require('sequelize');
 
 //! Reverse Proxy to Plex API on local machine
+//? Create an axios instance to proxy requests to the Plex API on the local machine
 const plexProxyApi = axios.create({
     baseURL: 'http://71.224.160.213:8222/api/v2',
     params: {
@@ -166,7 +179,6 @@ const deleteAllRecentlyAdded = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
-
 
 module.exports = {
     plexLibrarySearch,

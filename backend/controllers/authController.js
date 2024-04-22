@@ -1,9 +1,22 @@
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\controllers\authController.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Tuesday April 16th 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:45:08 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
+
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { File, User, UserInvite } = require('../models');
-require('dotenv').config();
+const { User, UserInvite } = require('../models');
+require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 
 //! User registration
+//? Register a new user with a valid invite code
 async function register(req, res) {
   const { username, password, inviteCode } = req.body;
   try {
@@ -40,6 +53,7 @@ async function register(req, res) {
 }
 
 //! User login
+//? Log in an existing user
 async function login(req, res) {
   const { username, password } = req.body;
   try {
@@ -63,6 +77,7 @@ async function login(req, res) {
 }
 
 //! Generate invite code
+//? Generate a new invite code for the user
 async function generateInviteCode(req, res) {
   try {
     const userId = req.user.userId;
@@ -79,6 +94,7 @@ async function generateInviteCode(req, res) {
 }
 
 //! Get Invite Codes
+//? Get all invite codes for the user
 async function getUserInviteCodes(req, res) {
   try {
     const userId = req.user.userId;
@@ -91,6 +107,7 @@ async function getUserInviteCodes(req, res) {
 }
 
 //! Delete Invite Code
+//? Delete an invite code for the user
 async function deleteUserInviteCode (req, res) {
   try {
     const userId = req.user.userId;

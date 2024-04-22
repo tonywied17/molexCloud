@@ -1,3 +1,15 @@
+/*
+ * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\controllers\fileController.js
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Created Date: Tuesday April 16th 2024
+ * Author: Tony Wiedman
+ * -----
+ * Last Modified: Mon April 22nd 2024 7:45:03 
+ * Modified By: Tony Wiedman
+ * -----
+ * Copyright (c) 2024 MolexWorks / Tone Web Design
+ */
+
 const fs = require('fs');
 const { promisify } = require('util');
 const fsPromises = {
@@ -8,29 +20,26 @@ const fsPromises = {
   unlink: promisify(fs.unlink)
 };
 const path = require('path');
-const { File, User } = require('../models');
+const { File } = require('../models');
 const { pipeline } = require('stream/promises');
 const { authenticateToken } = require('../middleware/authMiddleware');
-const { v4: uuidv4 } = require('uuid');
+const { calculateDirectorySize, addDirectoryToArchive } = require('./utils/helpers');
 const archiver = require('archiver');
-const recursive = require('recursive-readdir');
 
 //! Get all files
+//? Get all files from the database
 async function getAllFiles(req, res) {
   try {
     let privateFiles = [];
     let publicFiles = [];
     let userFiles = [];
-
     let privateFileTypeCounts = {};
     let userFileTypeCounts = {};
 
-    // Public Files
     publicFiles = await File.findAll({
       where: { isPrivate: false }
     });
-
-    // Authenticated Request - Include private and public files
+    //? Authenticated Request - Include private and public files
     if (req.headers.authorization) {
       authenticateToken(req, res, async () => {
         try {
@@ -40,9 +49,8 @@ async function getAllFiles(req, res) {
               UserId: req.user.userId.toString()
             }
           });
-          let publicAndPrivateFiles = [...publicFiles, ...privateFiles];
 
-          // Modify file type to 'folder' for directories
+          let publicAndPrivateFiles = [...publicFiles, ...privateFiles];
           for (const file of publicAndPrivateFiles) {
             const filePath = file.path;
             if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
@@ -50,32 +58,29 @@ async function getAllFiles(req, res) {
               file.fileSize = await calculateDirectorySize(filePath);
             }
           }
-
           const publicFileTypeCounts = publicFiles.reduce((counts, file) => {
             counts[file.fileType] = (counts[file.fileType] || 0) + 1;
             return counts;
           }, {});
-
           privateFileTypeCounts = privateFiles.reduce((counts, file) => {
             counts[file.fileType] = (counts[file.fileType] || 0) + 1;
             return counts;
           }, {});
 
           userFiles = publicAndPrivateFiles.filter(file => file.UserId === req.user.userId);
-
           userFileTypeCounts = userFiles.reduce((counts, file) => {
             counts[file.fileType] = (counts[file.fileType] || 0) + 1;
             return counts;
           }, {});
 
           res.json({ publicFiles, privateFiles, userFiles, publicFileTypeCounts, privateFileTypeCounts, userFileTypeCounts });
+          
         } catch (error) {
           console.error(error);
           res.status(500).json({ error: 'Internal server error' });
         }
       });
     } else {
-      // Modify file type to 'folder' for directories
       for (const file of publicFiles) {
         const filePath = file.path;
         if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
@@ -83,13 +88,13 @@ async function getAllFiles(req, res) {
           file.fileSize = await calculateDirectorySize(filePath);
         }
       }
-
       const publicFileTypeCounts = publicFiles.reduce((counts, file) => {
         counts[file.fileType] = (counts[file.fileType] || 0) + 1;
         return counts;
       }, {});
 
       res.json({ publicFiles, publicFileTypeCounts });
+
     }
   } catch (error) {
     console.error(error);
@@ -97,18 +102,9 @@ async function getAllFiles(req, res) {
   }
 }
 
-// ? Helper function to calculate the size of a directory
-async function calculateDirectorySize(dirPath) {
-  let totalSize = 0;
-  const files = await recursive(dirPath);
-  for (const file of files) {
-    totalSize += fs.statSync(file).size;
-  }
-  return totalSize;
-}
-
 
 //! Upload file chunk via HTTP
+//? Upload a file chunk to the server via HTTP
 async function uploadFileChunkHTTP(req, res) {
   try {
     const isPrivate = req.headers.isprivate === 'true';
@@ -194,6 +190,7 @@ async function uploadFileChunkHTTP(req, res) {
 }
 
 //! Create file record only for ftp upload
+//? Create a file record in the database for a file uploaded via FTP
 async function createFileRecord(req, res) {
   try {
     const fileName = req.body.filename;
@@ -224,7 +221,8 @@ async function createFileRecord(req, res) {
   }
 }
 
-//! Download a file
+//! Download a file or directory
+//? Download a file or directory as a zip archive from the server
 async function downloadFile(req, res) {
   try {
     const fileId = req.params.id;
@@ -291,15 +289,8 @@ async function downloadFile(req, res) {
   }
 }
 
-// ? Helper function to add a directory to a zip archive
-async function addDirectoryToArchive(archive, dirPath, relativePath) {
-  const files = await recursive(dirPath);
-  files.forEach((file) => {
-    archive.file(file, { name: path.join(relativePath, path.relative(dirPath, file)) });
-  });
-}
-
 //! Delete a file or directory
+//? Delete a file or directory from the server and the database
 async function deleteFile(req, res) {
   try {
     const fileId = req.params.id;
@@ -331,14 +322,6 @@ async function deleteFile(req, res) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
-
-function randomString() {
-  return Math.random().toString(36).substring(2, 7);
-}
-
-function uniqueFilename(filename) {
-  return `${filename}-${uuidv4()}`;
 }
 
 module.exports = {

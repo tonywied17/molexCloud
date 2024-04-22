@@ -22,6 +22,8 @@ export function getMimeIcon(mimeType) {
     // Archives
     'application/gzip': 'fa-file-archive',
     'application/zip': 'fa-file-archive',
+    // Folder/Directory
+    'inode/directory': 'fa-folder',
   };
 
   for (const type in iconClasses) {

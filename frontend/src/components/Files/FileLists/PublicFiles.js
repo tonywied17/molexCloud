@@ -187,7 +187,7 @@ const PublicFiles = ({ files, onDownloadSuccess }) => {
                                             onDownloadSuccess(file.id)
                                           }}
                                         >
-                                          Download
+                                          {file.fileType === 'inode/directory' ? 'Download as .ZIP' : 'Download'}
                                         </button>
                                       </div>
                                     </div>
@@ -247,7 +247,7 @@ const PublicFiles = ({ files, onDownloadSuccess }) => {
                   className='button downloadFile'
                   onClick={() => downloadFile(file.id, file.filename)}
                 >
-                  Download
+                  {file.fileType === 'inode/directory' ? 'Download as .ZIP' : 'Download'}
                 </button>
               </div>
             </div>

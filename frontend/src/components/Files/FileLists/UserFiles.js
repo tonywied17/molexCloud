@@ -205,7 +205,7 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
                                             onDownloadSuccess(file.id)
                                           }}
                                         >
-                                          Download
+                                          {file.fileType === 'inode/directory' ? 'Download as .ZIP' : 'Download'}
                                         </button>
                                         {isLoggedIn && file.UserId === userId && <button className='button deleteFile' onClick={handleDeleteFile(file.id)}>Delete</button>}
                                       </div>
@@ -266,7 +266,7 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
                   className='button downloadFile'
                   onClick={() => downloadFile(file.id, file.filename)}
                 >
-                  Download
+                  {file.fileType === 'inode/directory' ? 'Download as .ZIP' : 'Download'}
                 </button>
                 {isLoggedIn && file.UserId === userId && <button className='button deleteFile' onClick={handleDeleteFile(file.id)}>Delete</button>}
               </div>

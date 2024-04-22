@@ -4,11 +4,13 @@ const sequelize = require("../config/database.js");
 const User = require("./User");
 const UserInvite = require("./UserInvite");
 const File = require("./File");
+const PlexItem = require("./PlexItem");
 
 const db = {
     User,
     UserInvite,
-    File
+    File,
+    PlexItem
 };
 
 // A user can have many invites
@@ -23,5 +25,6 @@ module.exports = {
     Sequelize: sequelize,
     File: db.File,
     User: db.User,
-    UserInvite: db.UserInvite
+    UserInvite: db.UserInvite,
+    PlexItem: db.PlexItem
 };

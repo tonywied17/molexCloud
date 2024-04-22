@@ -6,15 +6,16 @@ import { useGlobalContext } from '../../../contexts/GlobalContext'
 
 const UploadHTTP = ({ onUploadSuccess }) => {
 
-  const { globals, setGlobals } = useGlobalContext();
+  const { uploadGlobals, setUploadGlobals } = useGlobalContext();
 
-  const [isPrivate, setIsPrivate] = useState(globals.isPrivate);
+  const [isPrivate, setIsPrivate] = useState(uploadGlobals.isPrivate);
 
   const handleFileChange = (e) => {
-    setGlobals(prevGlobals => ({
+    setUploadGlobals(prevGlobals => ({
       ...prevGlobals,
       file: e.target.files[0],
-      filename: e.target.files[0].name
+      filename: e.target.files[0].name,
+      fileType: e.target.files[0].type
     }));
   };
 
@@ -22,25 +23,25 @@ const UploadHTTP = ({ onUploadSuccess }) => {
   const handleCheckboxChange = (e) => {
     const isChecked = e.target.checked;
     setIsPrivate(isChecked);
-    setGlobals(prevGlobals => ({
+    setUploadGlobals(prevGlobals => ({
       ...prevGlobals,
       isPrivate: isChecked
     }));
   };
 
   const handleUpload = async () => {
-    if (!globals.file) {
+    if (!uploadGlobals.file) {
       console.error('No file selected');
       return;
     }
-    console.log('Uploading file:', globals.file);
+    console.log('Uploading file:', uploadGlobals.file);
 
     const chunkSize = 10 * 1024 * 1024; // 10MB
-    const totalChunks = Math.ceil(globals.file.size / chunkSize);
+    const totalChunks = Math.ceil(uploadGlobals.file.size / chunkSize);
     let totalBytesSent = 0;
 
     const uploadSessionId = uuidv4();
-    setGlobals(prevGlobals => ({
+    setUploadGlobals(prevGlobals => ({
       ...prevGlobals,
       sessionId: uploadSessionId,
       isActive: true
@@ -50,11 +51,11 @@ const UploadHTTP = ({ onUploadSuccess }) => {
       for (let i = 1; i <= totalChunks; i++) {
         const start = (i - 1) * chunkSize;
         const end = i * chunkSize;
-        const chunk = globals.file.slice(start, end);
+        const chunk = uploadGlobals.file.slice(start, end);
 
         totalBytesSent += chunk.size;
-        const progress = Math.round((totalBytesSent / globals.file.size) * 100);
-        setGlobals(prevGlobals => ({
+        const progress = Math.round((totalBytesSent / uploadGlobals.file.size) * 100);
+        setUploadGlobals(prevGlobals => ({
           ...prevGlobals,
           progress
         }));
@@ -63,22 +64,24 @@ const UploadHTTP = ({ onUploadSuccess }) => {
         console.log(chunk);
 
         const formData = new FormData();
-        formData.append('chunk', chunk, globals.file.name);
+        formData.append('chunk', chunk, uploadGlobals.file.name);
         formData.append('sessionId', uploadSessionId);
-        formData.append('originalname', globals.file.name);
+        formData.append('fileType', uploadGlobals.fileType);
+        formData.append('originalname', uploadGlobals.file.name);
 
-        const response = await uploadFileChunk(formData, globals.isPrivate, totalChunks, i);
+        const response = await uploadFileChunk(formData, uploadGlobals.isPrivate, totalChunks, i);
         // 201 if last chunk 200 if not last chunk (keep going)
         console.log('Upload response:', response);
       }
       setIsPrivate(false);
-      setGlobals(prevGlobals => ({
+      setUploadGlobals(prevGlobals => ({
         ...prevGlobals,
         file: null,
         filename: null,
         isPrivate: false,
         progress: 0,
         isActive: false,
+        fileType: null,
         sessionId: null
       }));
       await onUploadSuccess();
@@ -91,13 +94,13 @@ const UploadHTTP = ({ onUploadSuccess }) => {
     <div>
       <div className='modalTitle'></div>
       <div className='uploadFormFields'>
-        {globals.file && (
+        {uploadGlobals.file && (
           <button className='button'>
-            {globals.file.name} ({formatFileSize(globals.file.size)})
+            {uploadGlobals.file.name} ({formatFileSize(uploadGlobals.file.size)})
           </button>
         )}
         <input type="file" onChange={handleFileChange} />
-        {globals.progress > 0 && <div>Progress: {globals.progress}%</div>}
+        {uploadGlobals.progress > 0 && <div>Progress: {uploadGlobals.progress}%</div>}
       </div>
       <div className='uploadControlsDiv'>
         <label>

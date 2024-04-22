@@ -192,3 +192,12 @@ export const deleteUserInviteCode = async (codeId) => {
     throw error;
   }
 };
+
+export const getPlexItems = async () => {
+  try {
+    const response = await api.get('/plex/items');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

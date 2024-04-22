@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fileRoutes = require('./routes/fileRoutes');
 const authRoutes = require('./routes/authRoutes');
+const plexRoutes = require('./routes/plexRoutes');
 const path = require('path');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
@@ -51,6 +52,7 @@ app.use(fileUpload(
 //! Routes
 app.use('/files', fileRoutes);
 app.use('/auth', authRoutes);
+app.use('/plex', plexRoutes)
 
 app.get('/', (req, res) => {
   res.json({ 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route, useLocation } from 'react-router-dom';
 import { useGlobalContext } from '../contexts/GlobalContext';
 
 // Account Related
@@ -14,8 +14,10 @@ import ShareFile from './Files/ShareFile';
 // File Related
 import { getAllFiles } from '../services/api';
 import PublicFiles from './Files/FileLists/PublicFiles';
-import PrivateFiles from './Files/FileLists/PrivateFiles';
 import UserFiles from './Files/FileLists/UserFiles';
+
+// Plex Related
+import PlexRequests from './Plex/PlexRequests';
 
 // Icons
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -46,13 +48,38 @@ const Dashboard = () => {
   const [showInviteCodeForm, setShowInviteCodeForm] = useState(false);
   const [activeTab, setActiveTab] = useState('public');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const { globals, setGlobals } = useGlobalContext();
-  const { isLoggedIn, setIsLoggedIn, userId, setUserId } = useContext(AuthContext);
+  const { uploadGlobals, setUploadGlobals } = useGlobalContext();
+  const { isLoggedIn, setIsLoggedIn, userId, setUserId, username, setUsername } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const loginFormRef = useRef(null);
   const registerFormRef = useRef(null);
   const shareFileRef = useRef(null);
   const inviteCodeFormRef = useRef(null);
+
+  useEffect(() => {
+    const { pathname } = location;
+
+    if (pathname == '/files') {
+      setActiveTab('public');
+    } else if (pathname.startsWith('/files/users')) {
+      setActiveTab('users');
+    } else if (pathname.startsWith('/plex')) {
+      setActiveTab('plex');
+    } else {
+      setActiveTab('public');
+    }
+  }, [location]);
+
+  const handleTabClick = (tab) => {
+    if (tab === 'public') {
+      navigate('/files');
+    } else if (tab === 'users') {
+      navigate('/files/users');
+    } else if (tab === 'plex') {
+      navigate('/plex');
+    }
+  };
 
   useEffect(() => {
 
@@ -115,8 +142,8 @@ const Dashboard = () => {
   }, [showLoginForm, showRegisterForm, showShareFile, showInviteCodeForm]);
 
   useEffect(() => {
-    setUploadProgress(globals.progress);
-  }, [globals.progress]);
+    setUploadProgress(uploadGlobals.progress);
+  }, [uploadGlobals.progress]);
 
   const toggleLoginForm = () => {
     setShowLoginForm(!showLoginForm);
@@ -196,6 +223,10 @@ const Dashboard = () => {
     await fetchFiles();
   };
 
+  const handlePlexRequestSuccess = async (result) => {
+    console.log(result)
+  };
+
   const handleLogoClick = () => {
     fetchFiles();
     setActiveTab('public');
@@ -244,8 +275,8 @@ const Dashboard = () => {
       <div className='dashButtons'>
         {isLoggedIn && (
           <button className='button' onClick={toggleUploadForm}>
-            {globals.isActive ? `${globals.filename} - ${uploadProgress}%` : 'Upload File'} 
-            {globals.isActive ? <LoopIcon /> : <AddIcon />}
+            {uploadGlobals.isActive ? `${uploadGlobals.filename} - ${uploadProgress}%` : 'Upload File'}
+            {uploadGlobals.isActive ? <LoopIcon /> : <AddIcon />}
           </button>
         )}
       </div>
@@ -253,7 +284,7 @@ const Dashboard = () => {
       {isLoggedIn && showShareFile && (
         <ShareFile
           ref={shareFileRef}
-          globals={globals}
+          uploadGlobals={uploadGlobals}
           onUploadSuccess={handleUploadSuccess}
         />
       )}
@@ -265,26 +296,37 @@ const Dashboard = () => {
         {/* Files Container */}
         <div className='filesContainer'>
           <div className='dashTabs'>
-            <button className={`tabButton ${activeTab === 'public' ? 'active' : ''}`} onClick={() => setActiveTab('public')}>
-              Public
+            <button
+              className={`tabButton ${activeTab === 'public' ? 'active' : ''}`}
+              onClick={() => handleTabClick('public')}
+            >
+              Public Cloud
             </button>
             {isLoggedIn && (
               <>
-                <div className='authTabs'>
-                  <button className={`tabButton ${activeTab === 'private' ? 'active' : ''}`} onClick={() => setActiveTab('private')}>
-                    My Private
-                  </button>
-                  <button className={`tabButton ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
-                    My Uploads
-                  </button>
-                </div>
+                <button
+                  className={`tabButton ${activeTab === 'users' ? 'active' : ''}`}
+                  onClick={() => handleTabClick('users')}
+                >
+                  {username}'s Uploads
+                </button>
               </>
             )}
+            <button
+              className={`tabButton plexTab ${activeTab === 'plex' ? 'active' : ''}`}
+              onClick={() => handleTabClick('plex')}
+            >
+              Plex Requests
+            </button>
           </div>
           <div className='tabsContent'>
-            {activeTab === 'public' && <PublicFiles files={files.publicFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />}
-            {activeTab === 'private' && isLoggedIn && <PrivateFiles files={files.privateFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />}
-            {activeTab === 'users' && isLoggedIn && <UserFiles files={files.userFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />}
+            <Routes>
+              <Route path="/" element={<PublicFiles files={files.publicFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />} />
+              <Route path="/files" element={<PublicFiles files={files.publicFiles} onDownloadSuccess={handleDownloadSuccess} />} />
+              <Route path="/files/users" element={<UserFiles files={files.userFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />} />
+              <Route path="/plex" element={<PlexRequests onRequestSuccess={handlePlexRequestSuccess} />} />
+              <Route path="/plex/*" element={<PlexRequests onRequestSuccess={handlePlexRequestSuccess} />} />
+            </Routes>
           </div>
         </div>
       </div>

@@ -45,3 +45,16 @@ export function formatFileSize(bytes) {
     return bytes + ' bytes';
   }
 }
+
+export function cap(string) {
+  if (typeof string !== 'string' || !string.trim()) {
+    return string;
+  }
+  
+  const firstChar = string.trim().charAt(0);
+  if (!isNaN(parseInt(firstChar))) {
+    return string;
+  }
+  
+  return firstChar.toUpperCase() + string.trim().slice(1);
+}

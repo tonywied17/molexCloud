@@ -4,7 +4,7 @@ import { getMimeIcon } from '../../../services/helpers';
 import { formatFileSize } from '../../../services/helpers';
 import { AuthContext } from '../../../contexts/AuthContext';
 
-const UserFiles = ({ files, onDeleteSuccess }) => {
+const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
   const [searchText, setSearchText] = useState('');
   const [expandedYears, setExpandedYears] = useState({});
   const { isLoggedIn, userId } = useContext(AuthContext);
@@ -91,19 +91,19 @@ const UserFiles = ({ files, onDeleteSuccess }) => {
       },
     }));
   };
-  
+
   const handleDeleteFile = (fileId) => async () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this file?');
     if (!confirmDelete) {
       return;
     }
-    
+
     try {
       const response = await deleteFile(fileId);
-      
-      if(response.status === 400) {
+
+      if (response.status === 400) {
         alert(response.data.error)
-      } 
+      }
 
       onDeleteSuccess();
     } catch (error) {
@@ -186,9 +186,12 @@ const UserFiles = ({ files, onDeleteSuccess }) => {
                                             <div>{formatFileSize(file.fileSize)}</div>
                                           </div>
                                           <div className='fileAttribs'>
-                                            
+
                                             <div>{file.downloads} downloads</div>
                                             {isLoggedIn && file.UserId === userId ? <div>added by you</div> : <div>added by {file.author}</div>}
+                                            <div className={file.isPrivate ? 'privateFile' : 'publicFile'}>
+                                              {file.isPrivate ? 'Private' : 'Public'}
+                                            </div>
 
                                           </div>
                                         </div>
@@ -197,7 +200,10 @@ const UserFiles = ({ files, onDeleteSuccess }) => {
                                       <div className='fileButtonsContainer'>
                                         <button
                                           className='button downloadFile'
-                                          onClick={() => downloadFile(file.id, file.filename)}
+                                          onClick={async () => {
+                                            await downloadFile(file.id, file.filename)
+                                            onDownloadSuccess(file.id)
+                                          }}
                                         >
                                           Download
                                         </button>
@@ -224,26 +230,45 @@ const UserFiles = ({ files, onDeleteSuccess }) => {
           {filteredFiles.map((file, index) => (
             <div className='fileDetailsBox' key={index}>
               <div className='fileDetailsContainer'>
-                <div>{file.filename}</div>
-                <div>{file.fileType}</div>
+                <div className='fileTopContainer'>
+                  <div>{file.filename}</div>
+                  <button
+                    className='button copyLink'
+                    onClick={() =>
+                      copyToClipboard(
+                        'https://molex.cloud/api/files/' + file.id
+                      )
+                    }
+                  >
+                    <i className="fa-solid fa-link"></i>
+                  </button>
+                </div>
+                <div className='fileDeets'>
+                  <div className='fileTypeIconContainer'>
+                    <i className={`fileDetailsMimeType fa-regular ${getMimeIcon(file.fileType)}`}></i>
+                    <span>{file.fileType}</span>
+                    <div>{formatFileSize(file.fileSize)}</div>
+                  </div>
+                  <div className='fileAttribs'>
+
+                    <div>{file.downloads} downloads</div>
+                    {isLoggedIn && file.UserId === userId ? <div>added by you</div> : <div>added by {file.author}</div>}
+                    <div className={file.isPrivate ? 'privateFile' : 'publicFile'}>
+                      {file.isPrivate ? 'Private' : 'Public'}
+                    </div>
+
+                  </div>
+                </div>
+
               </div>
               <div className='fileButtonsContainer'>
                 <button
-                  className='button'
-                  onClick={() =>
-                    copyToClipboard(
-                      'https://molex.cloud/api/files/download/' + file.id
-                    )
-                  }
-                >
-                  Copy Share Link
-                </button>
-                <button
-                  className='button'
+                  className='button downloadFile'
                   onClick={() => downloadFile(file.id, file.filename)}
                 >
                   Download
                 </button>
+                {isLoggedIn && file.UserId === userId && <button className='button deleteFile' onClick={handleDeleteFile(file.id)}>Delete</button>}
               </div>
             </div>
           ))}

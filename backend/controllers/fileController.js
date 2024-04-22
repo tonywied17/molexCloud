@@ -80,6 +80,7 @@ async function uploadFileChunkHTTP(req, res) {
     let chunk = req.files.chunk;
 
     const sessionId = req.body.sessionId;
+    const fileType = req.body.fileType;
 
     const userId = req.user.userId.toString();
     const author = req.user.username;
@@ -122,17 +123,12 @@ async function uploadFileChunkHTTP(req, res) {
         
         console.log(`File ${fileName} assembled successfully`);
 
-        // ? Insert or update file record in database
-        const { fileTypeFromFile } = await import('file-type');
-        const type = await fileTypeFromFile(finalFilePath)
-        const fileTypeString = type ? (type.mime || type.ext || 'unknown') : 'unknown';
-
         console.log('Creating file record...');
         await File.create({
           filename: fileName,
           path: finalFilePath,
           isPrivate: isPrivate,
-          fileType: fileTypeString,
+          fileType: fileType,
           fileSize: fs.statSync(finalFilePath).size,
           author: author,
           downloads: 0,
@@ -185,6 +181,7 @@ async function downloadFile(req, res) {
 
     const contentType = file.fileType || 'application/octet-stream';
     res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
     res.setHeader('X-Filename', file.filename);
 
     const fileStream = fs.createReadStream(filePath);

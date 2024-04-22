@@ -5,17 +5,18 @@ const GlobalContext = createContext();
 export const useGlobalContext = () => useContext(GlobalContext);
 
 export const GlobalProvider = ({ children }) => {
-  const [globals, setGlobals] = useState({
+  const [uploadGlobals, setUploadGlobals] = useState({
     file: null,
     filename: null,
     isPrivate: false,
     progress: 0,
     isActive: false,
+    fileType: null,
     sessionId: null,
   });
 
   return (
-    <GlobalContext.Provider value={{ globals, setGlobals }}>
+    <GlobalContext.Provider value={{ uploadGlobals, setUploadGlobals }}>
       {children}
     </GlobalContext.Provider>
   );

@@ -1,18 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fileRoutes = require('./routes/fileRoutes');
-const authRoutes = require('./routes/authRoutes');
-const plexRoutes = require('./routes/plexRoutes');
 const path = require('path');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const WebSocket = require('ws');
-const https = require('https'); 
+const https = require('https');
 const fs = require('fs');
 const { FileUploadSession } = require('./sessions/FileUploadSession');
 require('dotenv').config();
 const { Sequelize } = require("./models");
 const { v4: uuidv4 } = require('uuid');
+
+// Route Files
+const { router: fileRoutes, routes: fileRoutesArray } = require('./routes/fileRoutes');
+const { router: authRoutes, routes: authRoutesArray } = require('./routes/authRoutes');
+const { router: plexRoutes, routes: plexRoutesArray } = require('./routes/plexRoutes');
+
 
 /**
  * * --- Express Server ---
@@ -49,31 +52,38 @@ app.use(fileUpload(
   }
 ));
 
-//! Routes
+// Routes
 app.use('/files', fileRoutes);
 app.use('/auth', authRoutes);
-app.use('/plex', plexRoutes)
+app.use('/plex', plexRoutes);
 
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Molex Cloud API',
-    endpoints: {
-      files: {
-        publicFiles: '/files',
-        privateFiles: '/files/private',
-        fileTypes: '/files/filetypes',
-        downloadFile: '/files/download/:id',
-        uploadFile: '/files/upload/chunk',
-        deleteFile: '/files/:id',
-      },
-      auth: {
-        login: '/auth/login',
-        register: '/auth/register',
-      }
-    } 
+const endpoints = {
+  message: 'Molex Cloud API',
+  endpoints: {}
+};
+
+[fileRoutesArray, authRoutesArray, plexRoutesArray].forEach(routesArray => {
+  routesArray.forEach(route => {
+    const { method, path, middleware, description, prefix } = route;
+
+    if (!endpoints.endpoints[prefix]) {
+      endpoints.endpoints[prefix] = {};
+    }
+
+    if (!endpoints.endpoints[prefix][method]) {
+      endpoints.endpoints[prefix][method] = {};
+    }
+
+    endpoints.endpoints[prefix][method][path] = description;
   });
 });
 
+// Endpoint to display API information
+app.get('/', (req, res) => {
+  const prettyEndpoints = JSON.stringify(endpoints, null, 2);
+  res.header('Content-Type', 'application/json');
+  res.send(prettyEndpoints);
+});
 
 /**
  * * --- Websocket server ---
@@ -85,11 +95,11 @@ const sessionIDGeneration = uuidv4();
 
 // ! Websocket connection
 wss.on('connection', (ws) => {
-console.log('WebSocket connection opened');
+  console.log('WebSocket connection opened');
 
   // ? Create new file upload session
   const session = new FileUploadSession(ws, sessionIDGeneration);
-  activeSessions.set(session.id, session); 
+  activeSessions.set(session.id, session);
 
   // ! Websocket message
   ws.on('message', async (message) => {
@@ -99,7 +109,7 @@ console.log('WebSocket connection opened');
         console.error('Session not found.');
         return;
       }
-  
+
       if (!activeSession.metadataReceived) {
         const data = JSON.parse(message);
         if (data.type === 'file_upload_metadata') {
@@ -139,6 +149,6 @@ console.log('WebSocket connection opened');
 });
 
 
-Sequelize.sync().then(() => { 
+Sequelize.sync().then(() => {
   console.log("Shit synced");
 });

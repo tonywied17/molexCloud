@@ -3,35 +3,33 @@ const axios = require('axios');
 require('dotenv').config();
 const { Op } = require('sequelize');
 
-const plexApi = axios.create({
+//! Reverse Proxy to Plex API on local machine
+const plexProxyApi = axios.create({
     baseURL: 'http://71.224.160.213:8222/api/v2',
     params: {
         apikey: process.env.PLEX_API_KEY
     }
 });
 
-const proxy = async (req, res) => {
+//! Plex Library Search
+//? Search for a movie or TV show in Plex library
+const plexLibrarySearch = async (req, res) => {
     try {
-        const { sectionId, title } = req.query;
-        const response = await plexApi.get(`/?cmd=get_library_media_info&section_id=${sectionId}&search=${title}`);
-        res.json(response.data);
+        const { title } = req.query;
+
+        const tvShowLibrary = await plexProxyApi.get('/?cmd=get_library_media_info&section_id=5&search=' + title);
+        const movieLibrary = await plexProxyApi.get('/?cmd=get_library_media_info&section_id=8&search=' + title);
+
+        res.json({ data: { tvShowLibrary: tvShowLibrary.data, movieLibrary: movieLibrary.data } });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
 
-const refreshLibrary = async (req, res) => {
-    try {
-        const { sectionId } = req.query;
-        const response = await plexApi.get(`/?cmd=get_library_media_info&section_id=${sectionId}&refresh=true`);
-        console.log('Plex Library Refreshed!');
-        res.json(response.data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-}
-
-const webhook = async (req, res) => {
+//! Plex Recently Added Webhook
+//? Save a recently added movie or TV show to the database
+const plexRecentlyAddedWebhook = async (req, res) => {
     console.log(req.body.data);
     try {
         const {
@@ -73,10 +71,12 @@ const webhook = async (req, res) => {
     }
 };
 
+//! Refresh Plex Libraries
+//? Refresh Plex libraries after adding a new movie or TV show
 const refreshPlexLibraries = async (title) => {
     try {
-        const refreshShows = plexApi.get('/?cmd=get_library_media_info&section_id=5&search=' + title + '&refresh=true');
-        const refreshMovies = plexApi.get('/?cmd=get_library_media_info&section_id=8&search=' + title + '&refresh=true');
+        const refreshShows = plexProxyApi.get('/?cmd=get_library_media_info&section_id=5&search=' + title + '&refresh=true');
+        const refreshMovies = plexProxyApi.get('/?cmd=get_library_media_info&section_id=8&search=' + title + '&refresh=true');
         
         const [showsResponse, moviesResponse] = await Promise.all([refreshShows, refreshMovies]);
         return [showsResponse.data, moviesResponse.data];
@@ -86,7 +86,10 @@ const refreshPlexLibraries = async (title) => {
     }
 };
 
-const getItems = async (req, res) => {
+
+//! Get recently added items
+//? Get recently added movies or TV shows from the database
+const getRecentlyAddedByCount = async (req, res) => {
     try {
         let plexItems;
 
@@ -110,7 +113,9 @@ const getItems = async (req, res) => {
     }
 }
 
-const getItem = async (req, res) => {
+//! Get a recently added movie or TV show by ID
+//? Get a single recently added movie or TV show from the database
+const getRecentlyAddedItem = async (req, res) => {
     try {
         let id = req.query.id;
         const plexItem = await PlexItem.findOne({ where: { id } });
@@ -121,7 +126,9 @@ const getItem = async (req, res) => {
     }
 }
 
-const deleteItem = async (req, res) => {
+//! Delete a recently added movie or TV show by ID
+//? Delete a single recently added movie or TV show from the database
+const deleteRecentlyAddedItem = async (req, res) => {
     try {
         let id = req.query.id;
         await PlexItem.destroy({ where: { id } });
@@ -132,7 +139,9 @@ const deleteItem = async (req, res) => {
     }
 }
 
-const deleteOldItems = async () => {
+//! Delete old recently added items (older than 30 days)
+//? Delete all recently added items older than 30 days
+const deleteOldRecentlyAdded = async () => {
     try {
         await PlexItem.destroy({
             where: {
@@ -146,7 +155,9 @@ const deleteOldItems = async () => {
     }
 }
 
-const deleteAllItems = async (req, res) => {
+//! Delete all recently added items
+//? Delete all recently added items from the database
+const deleteAllRecentlyAdded = async (req, res) => {
     try {
         await PlexItem.destroy({ where: {} });
         res.json({ message: 'All Plex item deleted successfully' });
@@ -158,12 +169,11 @@ const deleteAllItems = async (req, res) => {
 
 
 module.exports = {
-    proxy,
-    webhook,
-    getItems,
-    getItem,
-    deleteItem,
-    deleteOldItems,
-    deleteAllItems,
-    refreshLibrary
+    plexLibrarySearch,
+    plexRecentlyAddedWebhook,
+    getRecentlyAddedByCount,
+    getRecentlyAddedItem,
+    deleteRecentlyAddedItem,
+    deleteOldRecentlyAdded,
+    deleteAllRecentlyAdded
 };

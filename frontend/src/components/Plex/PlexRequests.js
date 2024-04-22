@@ -34,7 +34,6 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             console.error('Error fetching IMDb details:', error);
         }
     };
-    
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -75,30 +74,42 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             console.error('Error sending request to Discord:', error);
         }
     };
-
     const checkInLibrary = async (title, year) => {
         try {
             const sectionIds = [5, 8];
             const imdbTitle = replaceSpecialCharacters(title).toLowerCase(); 
             for (const sectionId of sectionIds) {
-                const response = await axios.get(`https://molex.cloud/api/plex/proxy?sectionId=${sectionId}&title=${imdbTitle}`);
-                let data = response.data.response.data.data;
-                if (Array.isArray(data)) {
-                    const matchingMedia = data.filter(media => {
+                const response = await axios.get(`https://molex.cloud/api/plex/plex-library-search?sectionId=${sectionId}&title=${imdbTitle}`);
+
+                const { tvShowLibrary, movieLibrary } = response.data.data;
+
+                // Handling TV show data
+                if (tvShowLibrary && tvShowLibrary.response && tvShowLibrary.response.data && Array.isArray(tvShowLibrary.response.data.data)) {
+                    const matchingMedia = tvShowLibrary.response.data.data.filter(media => {
                         let plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
-                        if(plexTitle === 'the office (us)') {
+                        if (plexTitle === 'the office (us)') {
                             plexTitle = 'the office';
                         }
                         const titleMatch = imdbTitle.includes(plexTitle);
                         const yearMatch = year.includes(media.year);
                         return titleMatch && yearMatch;
                     });
-                    
                     if (matchingMedia.length > 0) {
                         return true;
                     }
-                } else {
-                    console.log(data + ' was not an array')
+                }
+    
+                // Handling movie data
+                if (movieLibrary && movieLibrary.response && movieLibrary.response.data && Array.isArray(movieLibrary.response.data.data)) {
+                    const matchingMedia = movieLibrary.response.data.data.filter(media => {
+                        const plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
+                        const titleMatch = imdbTitle.includes(plexTitle);
+                        const yearMatch = year.includes(media.year);
+                        return titleMatch && yearMatch;
+                    });
+                    if (matchingMedia.length > 0) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -107,7 +118,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             return false;
         }
     };
-
+    
 
     return (
         <div ref={ref}>

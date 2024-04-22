@@ -1,5 +1,5 @@
 import axios from 'axios';
-const apiKey = '';
+const apiKey = 'b465cd8';
 const apiURL = 'https://www.omdbapi.com/';
 
 

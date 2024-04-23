@@ -4,7 +4,7 @@
  * Created Date: Monday April 22nd 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:45:15 
+ * Last Modified: Mon April 22nd 2024 10:47:20 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const recursive = require('recursive-readdir');
+const path = require('path');
 
 //! Helper function to calculate the size of a directory
 async function calculateDirectorySize(dirPath) {

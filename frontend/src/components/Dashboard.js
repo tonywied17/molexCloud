@@ -76,7 +76,7 @@ const Dashboard = () => {
 
   const handleTabClick = (tab) => {
     if (tab === 'public') {
-      navigate('/files');
+      navigate('/files/public');
     } else if (tab === 'users') {
       navigate('/files/users');
     } else if (tab === 'plex') {
@@ -359,7 +359,7 @@ const Dashboard = () => {
           <div className='tabsContent'>
             <Routes>
               <Route path="/" element={<PublicFiles files={files.publicFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />} />
-              <Route path="/files" element={<PublicFiles files={files.publicFiles} onDownloadSuccess={handleDownloadSuccess} />} />
+              <Route path="/files/public" element={<PublicFiles files={files.publicFiles} onDownloadSuccess={handleDownloadSuccess} />} />
               <Route path="/files/users" element={<UserFiles files={files.userFiles} onDeleteSuccess={handleDeleteSuccess} onDownloadSuccess={handleDownloadSuccess} />} />
               <Route path="/plex" element={<PlexRequests onRequestSuccess={handlePlexRequestSuccess} />} />
               <Route path="/plex/*" element={<PlexRequests onRequestSuccess={handlePlexRequestSuccess} />} />

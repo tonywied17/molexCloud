@@ -25,6 +25,8 @@ import LoginIcon from '@mui/icons-material/Login';
 import AddIcon from '@mui/icons-material/Add';
 import KeyIcon from '@mui/icons-material/Key';
 import LoopIcon from '@mui/icons-material/Loop';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 
 const Dashboard = () => {
   const [files, setFiles] = useState({
@@ -56,6 +58,7 @@ const Dashboard = () => {
   const registerFormRef = useRef(null);
   const shareFileRef = useRef(null);
   const inviteCodeFormRef = useRef(null);
+  const [showMobileTabs, setShowMobileTabs] = useState(false);
 
   useEffect(() => {
     const { pathname } = location;
@@ -79,6 +82,27 @@ const Dashboard = () => {
     } else if (tab === 'plex') {
       navigate('/plex');
     }
+
+    if (window.innerWidth <= 1024) {
+      toggleMobileTabs();
+    }
+    
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setShowMobileTabs(window.innerWidth <= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const toggleMobileTabs = () => {
+    setShowMobileTabs(!showMobileTabs);
   };
 
   useEffect(() => {
@@ -293,9 +317,22 @@ const Dashboard = () => {
       {showRegisterForm && <RegisterForm onRegisterSuccess={handleRegisterSuccess} ref={registerFormRef} />}
 
       <div className='categories'>
+        {/* Toggle button for mobile tabs */}
+        <div className='mobileTabMenu'>
+          <div>
+            {activeTab === 'public' ? 'Public Cloud' :
+              activeTab === 'users' ? `${username}'s Uploads` :
+                activeTab === 'plex' ? 'Plex Requests' : 'Public Cloud'
+            }
+          </div>
+          <button className="toggleMobileTabs" onClick={toggleMobileTabs}>
+            {showMobileTabs ? <MenuIcon /> : <CloseIcon />}
+          </button>
+        </div>
+
         {/* Files Container */}
         <div className='filesContainer'>
-          <div className='dashTabs'>
+          <div className={`dashTabs ${showMobileTabs ? 'closed' : ''}`}>
             <button
               className={`tabButton ${activeTab === 'public' ? 'active' : ''}`}
               onClick={() => handleTabClick('public')}

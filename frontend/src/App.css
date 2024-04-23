@@ -51,22 +51,31 @@
     flex-direction: column !important;
     justify-content: center !important;
     align-items: stretch !important;
-    background: #000000c4 !important;
+    gap: 0.75em !important;
+    padding: 5px;
+    padding: 1.2em 1em;
+    border: 0 !important;
+    background: #6d6d6d3b !important;
+    border-top-right-radius: 5px !important;
+    border-top-left-radius: 5px !important;
+  }
+  .dashTabs button:hover {
+    background: #333333c4 !important;
   }
   .dashTabs button {
-    font-size: 1em !important;
+    font-size: 1.2em !important;
     margin-right: 0 !important;
     border-radius: 0 !important;
-    border-bottom: 1px solid #ffffff0e !important;
+    padding: 0.5em 0 !important;
   }
   .tabsContent {
     border-top-left-radius: 0 !important;
     border-top-right-radius: 0 !important;
   }
   .dashTabs .active {
-    background: #1d1d1dc4 !important;
-    font-weight: 900 !important;
-    border-left: 4px solid #ffffff77;
+    background: transparent !important;
+    font-weight: 700 !important;
+
   }
   .dashTabs :not(.active) {
     font-weight: 500 !important;
@@ -147,6 +156,35 @@
   .title {
     font-size: 1rem !important;
   }
+  .mobileTabMenu {
+    display: flex !important;
+    padding-bottom: 5px;
+  }
+}
+
+.toggleMobileTabs{
+  background: #000000c4;
+  border: 0;
+  outline: 0;
+  padding: 0.50em 0.75em;
+  padding-top: 0.70em;
+  font-size: 1.1em;
+  color: #ffffff88;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.mobileTabMenu{
+  display: none;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+.mobileTabMenu div:nth-child(1) {
+  font-size: 1.2em;
+}
+.closed {
+  display: none !important;
 }
 
 :root {
@@ -179,6 +217,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
+  width: 100%;
 }
 
 .App {
@@ -351,7 +390,7 @@ h2 {
   border: #e5a10d8a 1px solid;
   color: #e5a10d8a;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
   min-width: 150px;
 }
 .searchBtn {
@@ -870,6 +909,9 @@ input[type="checkbox"] {
   padding: 0.5em;
   margin-top: 1em;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .bounce {
@@ -985,7 +1027,6 @@ input[type="checkbox"] {
   border: 1px solid #ffffff2f;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 1em;
 }
 
 .imdbSearch {
@@ -993,6 +1034,10 @@ input[type="checkbox"] {
   flex-direction: row;
   gap: 10px;
   padding: 1em 0;
+}
+
+.imdbSearch input[type="text"] {
+  padding: 1em !important;
 }
 
 .plexPoster {

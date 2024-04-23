@@ -39,7 +39,7 @@ const PlexRecentlyAdded = () => {
                                 () => {
                                     window.open(`${item.plexUrl}`, '_blank')
                                 }
-                            }><i class="fa-solid fa-play"></i> Watch on Plex</button>
+                            }><i className="fa-solid fa-play"></i> Watch on Plex</button>
                         </div>
                 </div>
             ))}

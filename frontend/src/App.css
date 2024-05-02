@@ -160,6 +160,9 @@
     display: flex !important;
     padding-bottom: 5px;
   }
+  .navButtons {
+    flex-direction: column !important;
+  }
 }
 
 .toggleMobileTabs{
@@ -315,7 +318,19 @@ h2 {
 .navButtons {
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 10px;
+}
+
+.navButtons div:nth-child(1) {
+  color: #b3b44c;
+}
+
+.navButtons div:nth-child(2) {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
 }
 
 .dashButtons {

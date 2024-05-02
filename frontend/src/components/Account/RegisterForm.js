@@ -1,12 +1,22 @@
-import React, { useState, useContext, forwardRef } from 'react';
-import { registerUser, } from '../../services/api';
+import React, { useState, useContext, forwardRef, useEffect } from 'react';
+import { registerUser } from '../../services/api';
 import { AuthContext } from '../../contexts/AuthContext';
 
 const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('pib');
+  const [inviteCode, setInviteCode] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
+
+  // Function to generate a random invite code once during component initialization
+  useEffect(() => {
+    const generateInviteCode = () => {
+      const randomCode = Math.random().toString(36).substr(2, 7); // Generate a random code
+      setInviteCode(randomCode); // Set the generated code as the invite code state
+    };
+
+    generateInviteCode(); // Call the function to generate the invite code once during initialization
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,8 +35,6 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
     }
   };
 
-  const rand = () => Math.random().toString(36).substr(2, 7);
-
   return (
     <div>
       <div ref={ref} className='authFormContainer'>
@@ -43,11 +51,11 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
             </div>
             <div className='inputField'>
               <label>Invite Code:</label>
-              <input type="text" style={{ 'opacity': '0.8', 'color': '#6bc28ce0' }} value={rand()} onChange={(e) => setInviteCode(e.target.value)} disabled />
+              <input type="text" style={{ 'opacity': '0.8', 'color': '#6bc28ce0' }} value={inviteCode} disabled />
             </div>
             <div className='formButtons'>
-            <button className='button' type="submit">Register</button>
-            </div>  
+              <button className='button' type="submit">Register</button>
+            </div>
           </div>
         </form>
       </div>

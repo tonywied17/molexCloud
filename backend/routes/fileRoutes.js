@@ -1,10 +1,10 @@
 /*
  * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\routes\fileRoutes.js
- * Project: c:\Users\tonyw\AppData\Local\Temp\scp17776\public_html\test\api\routes
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
  * Created Date: Friday April 12th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Thu May 2nd 2024 5:47:32 
+ * Last Modified: Thu May 2nd 2024 7:14:17 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -12,7 +12,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, isAdmin } = require('../middleware/authMiddleware');
+const { authenticateToken, isRole, authenticateAndAuthorize } = require('../middleware/authMiddleware');
 const fileController = require('../controllers/fileController');
 
 const routes = [
@@ -35,7 +35,7 @@ const routes = [
   {
     method: 'post',
     path: '/upload/chunk',
-    middleware: [authenticateToken],
+    middleware: [authenticateAndAuthorize()],
     handler: fileController.uploadFileChunkHTTP,
     description: 'Upload file chunk',
     prefix: '/files'
@@ -51,7 +51,7 @@ const routes = [
   {
     method: 'delete',
     path: '/:id',
-    middleware: [authenticateToken],
+    middleware: [authenticateAndAuthorize()],
     handler: fileController.deleteFile,
     description: 'Delete file',
     prefix: '/files'

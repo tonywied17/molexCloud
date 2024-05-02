@@ -5,7 +5,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { setIsLoggedIn, setUserId } = useContext(AuthContext);
+  const { setIsLoggedIn, setUserId, setUsername: setAuthUsername, setRoles } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,6 +14,8 @@ const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
       localStorage.setItem('token', response.token);
       setIsLoggedIn(true);
       setUserId(response.userId);
+      setAuthUsername(response.username); // Update username in context
+      setRoles(response.roles || []); // Update roles in context, if available
       onLoginSuccess();
     } catch (error) {
       let errorMessage = error.response.data.error;

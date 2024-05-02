@@ -51,7 +51,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('public');
   const [uploadProgress, setUploadProgress] = useState(0);
   const { uploadGlobals } = useGlobalContext();
-  const { isLoggedIn, setIsLoggedIn, setUserId, username, isRole} = useContext(AuthContext);
+  const { isLoggedIn, setIsLoggedIn, setUserId, username, roles, setUsername, setRoles } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const loginFormRef = useRef(null);
@@ -59,6 +59,12 @@ const Dashboard = () => {
   const shareFileRef = useRef(null);
   const inviteCodeFormRef = useRef(null);
   const [showMobileTabs, setShowMobileTabs] = useState(false);
+
+
+  const isRole = (role) => {
+    return roles.includes(role);
+  };
+
 
   useEffect(() => {
     const { pathname } = location;
@@ -86,7 +92,7 @@ const Dashboard = () => {
     if (window.innerWidth <= 1024) {
       toggleMobileTabs();
     }
-    
+
   };
 
   useEffect(() => {
@@ -191,8 +197,10 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setUserId(null);
     setIsLoggedIn(false);
+    setUserId(null);
+    setUsername(null);
+    setRoles([]);
   };
 
   const handleLoginSuccess = () => {
@@ -226,7 +234,6 @@ const Dashboard = () => {
       console.error('Error fetching files:', error);
     }
   };
-
 
   const handleUploadSuccess = async () => {
     setUploadProgress(0);
@@ -288,15 +295,18 @@ const Dashboard = () => {
           </div>
         </div>
         <div className='navButtons'>
-          {!isLoggedIn && (
-            <>
-              <button className='button' onClick={toggleLoginForm}><LoginIcon /> Login</button>
-              <button className='button' onClick={toggleRegisterForm}><AddIcon />Account</button>
-            </>
-          )}
-          {isLoggedIn && <button className='button' onClick={toggleInviteCodeForm}><KeyIcon /> Invites</button>}
-          {isLoggedIn && <button className='button' onClick={handleLogout}><LogoutIcon /> Logout</button>}
+          <div>{isRole('admin') ? 'Admin' : isRole('user') ? 'User' : 'Guest'}</div>
+          <div>
+            {!isLoggedIn && (
+              <>
+                <button className='button' onClick={toggleLoginForm}><LoginIcon /> Login</button>
+                <button className='button' onClick={toggleRegisterForm}><AddIcon />Account</button>
+              </>
+            )}
 
+            {isLoggedIn && <button className='button' onClick={toggleInviteCodeForm}><KeyIcon /> Invites</button>}
+            {isLoggedIn && <button className='button' onClick={handleLogout}><LogoutIcon /> Logout</button>}
+          </div>
         </div>
       </div>
 

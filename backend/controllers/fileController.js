@@ -1,10 +1,10 @@
 /*
  * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\controllers\fileController.js
- * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Project: c:\Users\tonyw\AppData\Local\Temp\scp15599\public_html\test\api\controllers
  * Created Date: Tuesday April 16th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:45:03 
+ * Last Modified: Sat April 27th 2024 7:22:35 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -198,7 +198,7 @@ async function createFileRecord(req, res) {
     const fileSize = req.body.fileSize;
     const isPrivate = req.body.isPrivate;
     const author = req.body.author;
-    const userId = req.body.userId;
+    const userId = req.user.userId;
     const finalFilePath = '/home/tbz' + req.body.path;
 
     console.log(req.body)

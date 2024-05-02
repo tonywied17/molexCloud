@@ -1,10 +1,10 @@
 /*
  * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\routes\fileRoutes.js
- * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Project: c:\Users\tonyw\AppData\Local\Temp\scp15216\public_html\test\api\routes
  * Created Date: Friday April 12th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:44:17 
+ * Last Modified: Sat April 27th 2024 7:21:09 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -43,7 +43,7 @@ const routes = [
   {
     method: 'post',
     path: '/record',
-    middleware: [authenticateBearerToken],
+    middleware: [authenticateToken],
     handler: fileController.createFileRecord,
     description: 'Create file record',
     prefix: '/files'

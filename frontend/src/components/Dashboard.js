@@ -50,8 +50,8 @@ const Dashboard = () => {
   const [showInviteCodeForm, setShowInviteCodeForm] = useState(false);
   const [activeTab, setActiveTab] = useState('public');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const { uploadGlobals, setUploadGlobals } = useGlobalContext();
-  const { isLoggedIn, setIsLoggedIn, userId, setUserId, username, setUsername } = useContext(AuthContext);
+  const { uploadGlobals } = useGlobalContext();
+  const { isLoggedIn, setIsLoggedIn, setUserId, username } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const loginFormRef = useRef(null);
@@ -63,7 +63,7 @@ const Dashboard = () => {
   useEffect(() => {
     const { pathname } = location;
 
-    if (pathname == '/files') {
+    if (pathname === '/files') {
       setActiveTab('public');
     } else if (pathname.startsWith('/files/users')) {
       setActiveTab('users');
@@ -248,6 +248,7 @@ const Dashboard = () => {
   };
 
   const handlePlexRequestSuccess = async (result) => {
+    alert(`${result} has been requested`);
     console.log(result)
   };
 

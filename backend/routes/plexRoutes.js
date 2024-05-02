@@ -4,7 +4,7 @@
  * Created Date: Sunday April 21st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:44:11 
+ * Last Modified: Wed May 1st 2024 10:08:57 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -56,6 +56,46 @@ const routes = [
     middleware: [],
     handler: plexController.plexRecentlyAddedWebhook,
     description: 'Plex recently added webhook',
+    prefix: '/plex'
+  },
+  {
+    method: 'post',
+    path: '/request',
+    middleware: [],
+    handler: plexController.addPlexRequest,
+    description: 'Add plex request',
+    prefix: '/plex'
+  },
+  {
+    method: 'post',
+    path: '/requests/:name',
+    middleware: [],
+    handler: plexController.updateStatus,
+    description: 'Update plex request status',
+    prefix: '/plex'
+  },
+  {
+    method: 'get',
+    path: '/requests/:name',
+    middleware: [],
+    handler: plexController.getPlexRequestsByName,
+    description: 'Get plex requests',
+    prefix: '/plex'
+  },
+  {
+    method: 'get',
+    path: '/requests',
+    middleware: [],
+    handler: plexController.getAllPlexRequests,
+    description: 'Get plex requests',
+    prefix: '/plex'
+  },
+  {
+    method: 'delete',
+    path: '/requests',
+    middleware: [authenticateBearerToken],
+    handler: plexController.deleteAllPlexRequests,
+    description: 'Delete all plex requests',
     prefix: '/plex'
   },
   {

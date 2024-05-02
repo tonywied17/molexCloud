@@ -4,13 +4,13 @@
  * Created Date: Monday April 22nd 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:44:58 
+ * Last Modified: Wed May 1st 2024 10:06:41 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
  */
 
-const { PlexItem } = require('../models');
+const { PlexItem, PlexRequest } = require('../models');
 const axios = require('axios');
 require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 const { Op } = require('sequelize');
@@ -18,7 +18,7 @@ const { Op } = require('sequelize');
 //! Reverse Proxy to Plex API on local machine
 //? Create an axios instance to proxy requests to the Plex API on the local machine
 const plexProxyApi = axios.create({
-    baseURL: 'http://71.224.160.213:8222/api/v2',
+    baseURL: 'http://69.253.238.203:8222/api/v2',
     params: {
         apikey: process.env.PLEX_API_KEY
     }
@@ -77,6 +77,12 @@ const plexRecentlyAddedWebhook = async (req, res) => {
         const [showsRefreshData, moviesRefreshData] = await refreshPlexLibraries(title);
 
         console.log(`${title} added! Plex Libraries Refreshed!`);
+        
+        const plexRequest = await PlexRequest.findOne({ where: { request: title } });
+        if (plexRequest) {
+            await PlexRequest.update({ status: 'fulfilled' }, { where: { request: title } });
+        }
+
         res.status(201).json({ message: 'Plex item saved successfully', data: plexItem, showsRefreshData, moviesRefreshData });
     } catch (error) {
         console.error('Error saving Plex item:', error);
@@ -180,6 +186,79 @@ const deleteAllRecentlyAdded = async (req, res) => {
     }
 }
 
+//! Add a Plex request
+// ? if plex request title exists don't add it to the database and return a message
+const addPlexRequest = async (req, res) => {
+    try {
+        const { type, request } = req.body;
+        console.log('Request:', request);
+        const plexRequest = await PlexRequest.findOne({ where: { request } });
+        if (plexRequest) {
+            console.log('Plex request already exists');
+            return res.status(201).json({ message: 'Plex request already exists' });
+        }
+        await PlexRequest.create({ type, request });
+        res.json({ message: 'Plex request added successfully' });
+    }
+    catch (error) {
+        console.error('Error adding Plex request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+//! Get Plex requests
+//? Get plex requests with name query parameter compare again 'request' column
+const getPlexRequestsByName = async (req, res) => {
+    try {
+        const { name } = req.query;
+        const plexRequests = await PlexRequest.findAll({ where: { request: { [Op.iLike]: `%${name}%` } } });
+        res.json({ data: plexRequests });
+    } catch (error) {
+        console.error('Error fetching Plex requests:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+//! Get all Plex requests
+//? Get all Plex requests from the database
+const getAllPlexRequests = async (req, res) => {
+    try {
+        const plexRequests = await PlexRequest.findAll();
+        res.json({ data: plexRequests });
+    } catch (error) {
+        console.error('Error fetching Plex requests:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+//! Update Plex request status
+//? Update the status of a Plex request
+const updateStatus = async (req, res) => {
+    try {
+        const { name } = req.params;
+        const { status } = req.body;
+        await PlexRequest.update({ status }, { where: { request: name } });
+        res.json({ message: 'Plex request status updated successfully' });
+    } catch (error) {
+        console.error('Error updating Plex request status:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+//! Delete all plex requests
+//? Delete all Plex requests from the database
+const deleteAllPlexRequests = async (req, res) => {
+    try {
+        await PlexRequest.destroy({ where: {} });
+        res.json({ message: 'All Plex requests deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting Plex requests:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+
+
 module.exports = {
     plexLibrarySearch,
     plexRecentlyAddedWebhook,
@@ -187,5 +266,10 @@ module.exports = {
     getRecentlyAddedItem,
     deleteRecentlyAddedItem,
     deleteOldRecentlyAdded,
-    deleteAllRecentlyAdded
+    deleteAllRecentlyAdded,
+    addPlexRequest,
+    getAllPlexRequests,
+    getPlexRequestsByName,
+    updateStatus,
+    deleteAllPlexRequests
 };

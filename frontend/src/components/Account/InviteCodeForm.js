@@ -37,35 +37,37 @@ const InviteCodeForm = forwardRef(({ onInviteCodeGenerated }, ref) => {
   return (
     <div ref={ref} className='authFormContainer'>
       <form className='authFormFields' onSubmit={(e) => e.preventDefault()}>
-        <div>Generated Invite Code:</div>
-        <div className='inputField'>
-          <input type="text" value={generatedCode} readOnly />
-        </div>
-        <div className='inputField'>
-          <button className='button' onClick={handleGenerateCode} disabled={isLoading}>
-            {isLoading ? 'Generating...' : 'Generate Code'}
-          </button>
+        <div className='formHeader'>Generate Invite Code</div>
+        <div className='formContainer'>
+          <div className='inputField'>
+            <input type="text" value={generatedCode} readOnly />
+          </div>
+          <div className='inputField'>
+            <button className='button' onClick={handleGenerateCode} disabled={isLoading}>
+              {isLoading ? 'Generating...' : 'Generate Code'}
+            </button>
+          </div>
         </div>
         {userInviteCodes.length ? (
           <div className='myCodesContainer'>
-            <div style={{margin: '0.5em 0', fontSize: '1.2rem'}}>
+            <div style={{ padding: '0.5em 0.5em', fontSize: '1.2rem' }}>
               Your Invite Codes
-              <div style={{fontSize: '0.9rem', fontWeight: '400'}}>You may delete your used codes</div>
+              <div style={{ fontSize: '0.9rem', fontWeight: '400' }}>You may delete your used codes</div>
             </div>
-    
-              {userInviteCodes.map((invite, index) => (
-                <div className='usersInvitesContainer' key={index}>
-                  <div className={`codeBox ${invite.isUsed ? 'used' : 'notUsed'}`}>
-                    {invite.code}
-                  </div>
 
-                  <button className='button' onClick={async () => {
-                    await deleteUserInviteCode(invite.id);
-                    fetchUserInviteCodes();
-                  }}>Delete</button>
+            {userInviteCodes.map((invite, index) => (
+              <div className='usersInvitesContainer' key={index}>
+                <div className={`codeBox ${invite.isUsed ? 'used' : 'notUsed'}`}>
+                  {invite.code}
                 </div>
-              ))}
-      
+
+                <button className='button' onClick={async () => {
+                  await deleteUserInviteCode(invite.id);
+                  fetchUserInviteCodes();
+                }}>Delete</button>
+              </div>
+            ))}
+
           </div>
         ) : (
           <p>No invite codes found.</p>

@@ -4,6 +4,7 @@ import { searchIMDb, getIMDbDetails, sendToDiscordWebhook } from '../../services
 import { cap, replaceSpecialCharacters } from '../../services/helpers';
 import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
+import { getPlexRequests, addPlexRequest } from '../../services/api';
 import axios from 'axios';
 
 const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
@@ -11,6 +12,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const [searchYear, setSearchYear] = useState('');
     const [searchResults, setSearchResults] = useState(null);
     const [selectedResult, setSelectedResult] = useState(null);
+    const [loading, setLoading] = useState(false);
     const { username } = useContext(AuthContext);
     const navigate = useNavigate();
     const imdbID = window.location.pathname.split('/').pop();
@@ -27,11 +29,15 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
     const handleAutoSearch = async (imdbID) => {
         try {
+            setLoading(true);
             const details = await getIMDbDetails(imdbID);
             const inLibrary = await checkInLibrary(details.Title, details.Year);
-            setSelectedResult({ ...details, inLibrary }); 
+            const inRequests = await checkInRequests(details.Title);
+            setSelectedResult({ ...details, inLibrary, inRequests });
         } catch (error) {
             console.error('Error fetching IMDb details:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -44,14 +50,19 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             return;
         }
         try {
+            setLoading(true);
             const results = await searchIMDb(searchTerm, searchYear);
-            const resultsWithLibraryInfo = await Promise.all(results.map(async (result) => {
+            const resultsWithLibraryRequestsInfo = await Promise.all(results.map(async (result) => {
                 const inLibrary = await checkInLibrary(result.Title, result.Year);
-                return { ...result, inLibrary };
+                const inRequests = await checkInRequests(result.Title);
+                return { ...result, inLibrary, inRequests };
             }));
-            setSearchResults(resultsWithLibraryInfo);
+            console.log(resultsWithLibraryRequestsInfo);
+            setSearchResults(resultsWithLibraryRequestsInfo);
         } catch (error) {
             console.error('Error searching IMDb:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -62,25 +73,57 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
     const handleSelect = async (result) => {
         const details = await getIMDbDetails(result);
-        setSelectedResult(details);
-        onRequestSuccess(result);
+        if (details) {
+            const inLibrary = await checkInLibrary(details.Title, details.Year);
+            const inRequests = await checkInRequests(details.Title);
+            setSelectedResult({ ...details, inLibrary, inRequests });
+        }
         navigate(`/plex/${result}`);
     };
 
     const handleRequest = async (result) => {
+        console.log(result);
         try {
-            await sendToDiscordWebhook(selectedResult || result, username);
+            const response = await addPlexRequest(result.Type, result.Title);
+            console.log(response);
+            if (response.status === 200) {
+                await sendToDiscordWebhook(selectedResult || result, username);
+                setSearchResults(prevResults =>
+                    prevResults.map(prevResult =>
+                        prevResult.imdbID === result.imdbID
+                            ? { ...prevResult, inRequests: true }
+                            : prevResult
+                    )
+                );
+                onRequestSuccess(result.Title);
+            } else if (response.status === 201) {
+                alert('Request already exists asshole');
+            }
+    
         } catch (error) {
             console.error('Error sending request to Discord:', error);
         }
     };
+    
+
+    const checkInRequests = async (title) => {
+        try {
+            const response = await getPlexRequests();
+            const requests = response.data;
+            const matchingRequest = requests.find(request => request.request.toLowerCase() === title.toLowerCase());
+            return !!matchingRequest;
+        } catch (error) {
+            console.error('Error checking Plex requests:', error);
+            return false;
+        }
+    };
+
     const checkInLibrary = async (title, year) => {
         try {
             const sectionIds = [5, 8];
-            const imdbTitle = replaceSpecialCharacters(title).toLowerCase(); 
+            const imdbTitle = replaceSpecialCharacters(title).toLowerCase();
             for (const sectionId of sectionIds) {
                 const response = await axios.get(`https://molex.cloud/api/plex/plex-library-search?sectionId=${sectionId}&title=${imdbTitle}`);
-
                 const { tvShowLibrary, movieLibrary } = response.data.data;
 
                 // Handling TV show data
@@ -98,7 +141,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                         return true;
                     }
                 }
-    
+
                 // Handling movie data
                 if (movieLibrary && movieLibrary.response && movieLibrary.response.data && Array.isArray(movieLibrary.response.data.data)) {
                     const matchingMedia = movieLibrary.response.data.data.filter(media => {
@@ -118,7 +161,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             return false;
         }
     };
-    
+
 
     return (
         <div ref={ref}>
@@ -129,6 +172,14 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                     <button type="submit" className='button plexDetailsBtn searchBtn'><i className="fa-solid fa-magnifying-glass"></i>Search IMDB</button>
                 </div>
             </form>
+
+            {loading &&
+                <div className="loadingContainer">
+                    <div className='loadingText'>Fetching IMDB results and comparing to Plex Library... (doing shit)</div>
+                    <div className="loading"></div>
+
+                </div>
+            } {/* Loading indicator */}
 
             <div className='resultsGrid'>
                 {!selectedResult && searchResults && searchResults.map((result) => (
@@ -145,14 +196,23 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                 </div>
                                 <div className='searchButtons'>
                                     {/* if is in library */}
-                                    {!result.inLibrary && <button className='button plexSelect request' onClick={() => handleRequest(result)}>Request {cap(result.Type)}</button>}
-                                    <button className='button plexDetailsBtn' onClick={() => handleSelect(result.imdbID)}>{cap(result.Type)} Info</button>
+                                    {<button className='button plexDetailsBtn' onClick={() => handleSelect(result.imdbID)}>{cap(result.Type)} Info</button>}
+                                    {!result.inRequests && !result.inLibrary && (
+                                        <button className='button plexSelect request' onClick={() => handleRequest(result)}>
+                                            Request {cap(result.Type)}
+                                        </button>
+                                    )}
+                                    {result.inRequests && !result.inLibrary && (
+                                        <button className='button plexSelect request inRequestsBtn' disabled>
+                                            Requested
+                                        </button>
+                                    )}
+
                                 </div>
                             </div>
                         </div>
                     </div>
                 ))}
-
             </div>
 
             {selectedResult &&
@@ -166,7 +226,12 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                 <div className='plexButtons'>
                                     {/* if is in library */}
                                     {selectedResult.inLibrary && <button className='button plexSelect request inLibraryBtn' disabled>In Library</button>}
-                                    {!selectedResult.inLibrary && <button className='button plexSelect request' onClick={handleRequest}>Request {cap(selectedResult.Type)}</button>}
+                                    {!selectedResult.inLibrary && !selectedResult.inRequests && (
+                                        <button className='button plexSelect request' onClick={() => handleRequest(selectedResult)}>Request {cap(selectedResult.Type)}</button>
+                                    )}
+                                    {selectedResult.inRequests && (
+                                        <button className='button plexSelect request inRequestsBtn' disabled>Request Exists</button>
+                                    )}
                                     <button className='button plexDetailsBtn' onClick={
                                         () => window.open(`https://www.imdb.com/title/${selectedResult.imdbID}`, '_blank')
                                     }>View IMDB</button>

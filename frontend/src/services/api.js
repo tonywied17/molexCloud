@@ -193,10 +193,41 @@ export const deleteUserInviteCode = async (codeId) => {
   }
 };
 
+// ! Get plex recently added items
 export const getPlexItems = async () => {
   try {
     const response = await api.get('/plex/recently-added?count=6');
     return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Get all Plex Requests
+export const getPlexRequests = async () => {
+  try {
+    const response = await api.get('/plex/requests');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Get Plex Requests by name
+export const getPlexRequestsByName = async (name) => {
+  try {
+    const response = await api.get(`/plex/requests/${name}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Add a plex request
+export const addPlexRequest = async (type, request) => {
+  try {
+    const response = await api.post('/plex/request', { type, request });
+    return response;
   } catch (error) {
     throw error;
   }

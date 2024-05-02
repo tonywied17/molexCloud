@@ -28,7 +28,8 @@ const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
     <div>
       <div ref={ref} className='authFormContainer'>
         <form className='authFormFields' onSubmit={handleSubmit}>
-          <div>Logging back in...</div>
+        <div className='formHeader'>Logging back in...</div>
+          <div className='formContainer'>
           <div className='inputField'>
             <label>Username:</label>
             <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -37,7 +38,10 @@ const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
             <label>Password:</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <button className='button' type="submit">Login</button>
+          <div className='formButtons'>
+            <button className='button' type="submit">Login</button>
+            </div>  
+          </div>
         </form>
       </div>
     </div>

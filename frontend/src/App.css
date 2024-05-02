@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap");
 @media screen and (max-width: 768px) {
-  .resultsGrid {
+  .resultsGrid, .requestsGrid {
     grid-template-columns: repeat(auto-fit, minmax(100%, 1fr)) !important;
   }
 }
@@ -951,11 +951,16 @@ input[type="checkbox"] {
   color: #ff0000e0;
 }
 
-/* disabled btn */
-.inRequestsBtn:disabled {
-  /* remove transistions/active effects */
-  background: #c26b6be0;
-  cursor: not-allowed;
+.inRequests {
+    background: #f2ff3631;
+    color: #eeff00;
+    border: 1px solid #eeff00;
+    padding: 2px 5px;
+    font-size: 0.9rem;
+    border-radius: 5px;
+    white-space: nowrap;
+    width: fit-content;
+    user-select: none;
 }
 
 .inRequestsBtn:disabled:active {
@@ -964,8 +969,8 @@ input[type="checkbox"] {
 
 .inRequestsBtn:disabled:hover {
   filter: none;
-  background: #c26b6be0;
- box-shadow: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .publicFile {
@@ -1105,11 +1110,24 @@ input[type="checkbox"] {
   gap: 10px;
   padding: 1em;
   border-radius: 5px;
-  background: #00000071;
-  backdrop-filter: blur(5px);
+  background: #b1b1b11c;
+  width: 100%;
   border: 1px solid #ffffff2f;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.resultYear {
+  font-size: 1rem;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.resultGenres {
+  font-weight: 400;
+  font-style: italic;
+  color: #e5a10d8a;
 }
 
 .imdbSearch {
@@ -1137,7 +1155,7 @@ input[type="checkbox"] {
 }
 
 .plexPosterRecentAdded {
-  width: 150px;
+  width: 122px;
   border-radius: 5px;
   object-fit: contain;
   object-position: top;
@@ -1304,7 +1322,11 @@ input[type="password"] {
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 10px;
 }
-
+.requestsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(222px, 1fr));
+  gap: 10px;
+}
 .resultTitle {
   font-size: 1.2rem;
   font-weight: 700;
@@ -1324,6 +1346,60 @@ input[type="password"] {
   align-items: stretch;
   width: 100%;
   justify-content: space-between;
+  height: 100%;
+}
+
+.recentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.requestInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+.requestTitle {
+  /* max width ellispsis text */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  max-width: 222px;
+  font-weight: 600;
+}
+.requestBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.requestStatus {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 300;
+}
+
+.requestStatus > span {
+  color: rgba(231, 233, 139, 0.678);
+  font-weight: 200;
+}
+
+.requestYear {
+  font-weight: 200;
+  font-size: 0.8rem;
+  font-style: italic;
 }
 
 .recentlyAddedContainer {
@@ -1357,7 +1433,7 @@ input[type="password"] {
 }
 
 .inLibrary {
-  background: #09ff0049;
+  background: #09ff0031;
   color: #00ff00;
   border: 1px solid #00ff00;
   padding: 2px 5px;

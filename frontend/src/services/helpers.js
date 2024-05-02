@@ -85,3 +85,8 @@ export function cap(string) {
   
   return firstChar.toUpperCase() + string.trim().slice(1);
 }
+
+export function formatDateTime(dateTime) {
+  const date = new Date(dateTime);
+  return date.toLocaleString();
+}

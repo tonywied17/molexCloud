@@ -1,7 +1,7 @@
 import React, { forwardRef, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchIMDb, getIMDbDetails, sendToDiscordWebhook } from '../../services/imdb';
-import { cap, replaceSpecialCharacters } from '../../services/helpers';
+import { cap, replaceSpecialCharacters, formatDateTime } from '../../services/helpers';
 import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
 import { getPlexRequests, addPlexRequest } from '../../services/api';
@@ -11,6 +11,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchYear, setSearchYear] = useState('');
     const [searchResults, setSearchResults] = useState(null);
+    const [plexRequests, setPlexRequests] = useState([]);
     const [selectedResult, setSelectedResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const { username } = useContext(AuthContext);
@@ -26,6 +27,18 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
     useEffect(() => {
     }, [username]);
+
+    useEffect(() => {
+        const fetchRequests = async () => {
+            try {
+                const response = await getPlexRequests();
+                setPlexRequests(response.data);
+            } catch (error) {
+                console.error('Error fetching Plex requests:', error);
+            }
+        };
+        fetchRequests();
+    }, []);
 
     const handleAutoSearch = async (imdbID) => {
         try {
@@ -99,18 +112,20 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             } else if (response.status === 201) {
                 alert('Request already exists asshole');
             }
-    
+
         } catch (error) {
             console.error('Error sending request to Discord:', error);
         }
     };
-    
+
 
     const checkInRequests = async (title) => {
         try {
-            const response = await getPlexRequests();
-            const requests = response.data;
-            const matchingRequest = requests.find(request => request.request.toLowerCase() === title.toLowerCase());
+            if (!plexRequests) {
+                setPlexRequests(await getPlexRequests());
+            };
+
+            const matchingRequest = plexRequests.find(request => request.request.toLowerCase() === title.toLowerCase());
             return !!matchingRequest;
         } catch (error) {
             console.error('Error checking Plex requests:', error);
@@ -181,13 +196,41 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 </div>
             } {/* Loading indicator */}
 
-            <div className='resultsGrid'>
-                {!selectedResult && searchResults && searchResults.map((result) => (
+            {!searchResults && plexRequests && <div className='plexHeader'>Pending Requests</div>}
+
+
+            {/* list recent plex requests */}
+            {!searchResults && plexRequests && <div className='requestsGrid'>
+
+                {plexRequests
+                    .filter(request => request.status === 'pending')
+                    .map((request) => (
+                        <div key={request.id} className='plexResults searchPage'>
+                            <div className='plexPosterDetails'>
+                                <div className='requestInfo'>
+                                    <div className='titleYear'>
+                                        <div className='requestTitle'>{request.request}</div>
+                                    </div>
+                                    <div className='requestBottom'>
+                                        <div className='requestStatus'>Status <span>{cap(request.status)}</span></div>
+                                        <div className='requestYear'>{formatDateTime(request.createdAt)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+
+            </div>}
+
+            {!selectedResult && searchResults && <div className='resultsGrid'>
+                {searchResults.map((result) => (
                     <div key={result.imdbID} className='plexResults searchPage'>
                         <div className='plexPosterDetails'>
                             <div className='searchFlex'>
                                 <img className='plexPoster' src={result.Poster} alt={result.Title} />
                                 {result.inLibrary && <div className='inLibrary'>In Library</div>}
+                                {result.inRequests && <div className='inRequests'>Requested</div>}
                             </div>
                             <div className='resultsInfo'>
                                 <div className='titleYear'>
@@ -195,16 +238,10 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                     <div className='resultYear'>{result.Year}</div>
                                 </div>
                                 <div className='searchButtons'>
-                                    {/* if is in library */}
                                     {<button className='button plexDetailsBtn' onClick={() => handleSelect(result.imdbID)}>{cap(result.Type)} Info</button>}
                                     {!result.inRequests && !result.inLibrary && (
                                         <button className='button plexSelect request' onClick={() => handleRequest(result)}>
                                             Request {cap(result.Type)}
-                                        </button>
-                                    )}
-                                    {result.inRequests && !result.inLibrary && (
-                                        <button className='button plexSelect request inRequestsBtn' disabled>
-                                            Requested
                                         </button>
                                     )}
 
@@ -213,7 +250,9 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                         </div>
                     </div>
                 ))}
-            </div>
+
+            </div>}
+
 
             {selectedResult &&
                 <div className='plexResults'>
@@ -263,7 +302,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 </div>
             }
 
-            {!selectedResult && <div className='plexHeader'>Recently Added in Media</div>}
+            {!selectedResult && <div className='plexHeader'>Newly Added to Server</div>}
             {!selectedResult && <PlexRecentlyAdded />}
 
         </div>

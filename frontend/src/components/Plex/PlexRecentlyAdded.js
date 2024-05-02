@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getPlexItems } from '../../services/api';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import StarBorderPurple500Icon from '@mui/icons-material/StarBorderPurple500';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 
 const PlexRecentlyAdded = () => {
     const [recentlyAdded, setRecentlyAdded] = useState([]);
@@ -24,10 +27,10 @@ const PlexRecentlyAdded = () => {
                 <div className='plexResults recentPage' key={item.id}>
                     <div className='plexPosterDetailsRecent'>
                         <img className='plexPosterRecentAdded' src={item.poster_url} alt={item.title} />
-                        <div className='resultsInfo'>
+                        <div className='recentInfo'>
                             <div className='resultTitle'>{item.title}</div>
-                            <div className='resultYear'>{item.release_year}</div>
-                            <div className='rating'><i className="fa-brands fa-imdb"></i> {item.imdbRating} Rating</div>
+                            {item.release_year && <div className='resultYear'><CalendarTodayIcon/> {item.release_year}</div> }
+                            {item.imdbRating && <div className='rating'><StarBorderPurple500Icon/> {item.imdbRating} Rating</div>}
                             <div className='resultGenres'>{item.genre}</div>
                         </div>
                         

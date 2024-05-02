@@ -1,10 +1,10 @@
 /*
  * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\routes\fileRoutes.js
- * Project: c:\Users\tonyw\AppData\Local\Temp\scp15216\public_html\test\api\routes
+ * Project: c:\Users\tonyw\AppData\Local\Temp\scp17776\public_html\test\api\routes
  * Created Date: Friday April 12th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat April 27th 2024 7:21:09 
+ * Last Modified: Thu May 2nd 2024 5:47:32 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -12,7 +12,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, authenticateBearerToken } = require('../middleware/authMiddleware');
+const { authenticateToken, isAdmin } = require('../middleware/authMiddleware');
 const fileController = require('../controllers/fileController');
 
 const routes = [

@@ -7,6 +7,7 @@ const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState(null);
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -14,12 +15,18 @@ const AuthProvider = ({ children }) => {
       const payload = JSON.parse(atob(token.split('.')[1]));
       setUserId(payload.userId);
       setUsername(cap(payload.username));
+      setRoles(payload.roles);
       setIsLoggedIn(true);
     }
-  }, [ isLoggedIn, userId, username]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function isRole(role) {
+    return roles.includes(role);
+  } 
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, userId, setUserId, username, setUsername }}>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, userId, setUserId, username, setUsername, isRole }}>
       {children}
     </AuthContext.Provider>
   );

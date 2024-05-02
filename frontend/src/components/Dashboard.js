@@ -51,7 +51,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('public');
   const [uploadProgress, setUploadProgress] = useState(0);
   const { uploadGlobals } = useGlobalContext();
-  const { isLoggedIn, setIsLoggedIn, setUserId, username } = useContext(AuthContext);
+  const { isLoggedIn, setIsLoggedIn, setUserId, username, isRole} = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const loginFormRef = useRef(null);
@@ -253,6 +253,8 @@ const Dashboard = () => {
   };
 
   const handleLogoClick = () => {
+    console.log('isAdmin', isRole('admin'))
+    console.log('isUser', isRole('user'))
     fetchFiles();
     setActiveTab('public');
     navigate('/');
@@ -294,6 +296,7 @@ const Dashboard = () => {
           )}
           {isLoggedIn && <button className='button' onClick={toggleInviteCodeForm}><KeyIcon /> Invites</button>}
           {isLoggedIn && <button className='button' onClick={handleLogout}><LogoutIcon /> Logout</button>}
+
         </div>
       </div>
 

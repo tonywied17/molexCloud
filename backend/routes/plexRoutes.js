@@ -4,7 +4,7 @@
  * Created Date: Sunday April 21st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Wed May 1st 2024 10:08:57 
+ * Last Modified: Thu May 2nd 2024 3:23:55 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -69,7 +69,7 @@ const routes = [
   {
     method: 'post',
     path: '/requests/:name',
-    middleware: [],
+    middleware: [authenticateBearerToken],
     handler: plexController.updateStatus,
     description: 'Update plex request status',
     prefix: '/plex'

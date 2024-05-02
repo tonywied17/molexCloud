@@ -4,7 +4,7 @@
  * Created Date: Tuesday April 16th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:45:08 
+ * Last Modified: Thu May 2nd 2024 2:39:19 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -12,7 +12,7 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { User, UserInvite } = require('../models');
+const { User, UserInvite, Role } = require('../models');
 require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 
 //! User registration
@@ -44,8 +44,17 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({ username, password: hashedPassword });
 
-    const token = jwt.sign({ userId: newUser.id, username }, process.env.JWT_SECRET, { expiresIn: '1y' });
-    res.status(201).json({ token, userId: newUser.id, username});
+    // Assign user role by default
+    const userRole = await Role.findOne({ where: { name: 'user' } });
+    await newUser.addRole(userRole);
+
+    // Extract roles from the user object
+    const roles = [userRole.name];
+
+    // Sign a token with the user ID, username, and roles
+    const token = jwt.sign({ userId: newUser.id, username, roles }, process.env.JWT_SECRET, { expiresIn: '1y' });
+
+    res.status(201).json({ token, userId: newUser.id, username, roles });
   } catch (error) {
     console.error('Error in Sequelize operation:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -57,7 +66,10 @@ async function register(req, res) {
 async function login(req, res) {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ where: { username } });
+    const user = await User.findOne({ 
+      where: { username },
+      include: [{ model: Role }]
+    });
     if (!user) {
       return res.status(401).json({ error: '[ERROR] User not found' });
     }
@@ -67,14 +79,16 @@ async function login(req, res) {
       return res.status(401).json({ error: '[ERROR] Invalid password' });
     }
 
-    // ? Sign a token with the user ID and username and send it back to the client
-    const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1y' });
-    res.json({ token, userId: user.id, username: user.username});
+    const roles = user.Roles.map(role => role.name);
+
+    const token = jwt.sign({ userId: user.id, username: user.username, roles }, process.env.JWT_SECRET, { expiresIn: '1y' });
+    res.json({ token, userId: user.id, username: user.username, roles });
 
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
 
 //! Generate invite code
 //? Generate a new invite code for the user

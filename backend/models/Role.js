@@ -4,7 +4,7 @@
  * Created Date: Tuesday April 16th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Thu May 2nd 2024 2:12:36 
+ * Last Modified: Thu May 2nd 2024 2:51:19 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -13,12 +13,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-//! Define the User model
-const User = sequelize.define('User', {
-  username: { type: DataTypes.STRING, unique: true },
-  password: DataTypes.STRING,
-  totalDownloads: DataTypes.INTEGER,
+//! Define the Role model
+const Role = sequelize.define('Roles', {
+  name: { type: DataTypes.STRING }
 });
 
-
-module.exports = User;
+module.exports = Role;

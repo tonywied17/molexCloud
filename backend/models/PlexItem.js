@@ -4,7 +4,7 @@
  * Created Date: Sunday April 21st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Mon April 22nd 2024 7:39:39 
+ * Last Modified: Sat May 4th 2024 5:36:32 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -26,6 +26,7 @@ const sequelize = require('../config/database');
 // plexRating: Plex item Plex rating
 const PlexItem = sequelize.define('PlexItem', {
     title: DataTypes.STRING,
+    imdbID: DataTypes.STRING,
     release_year: DataTypes.STRING,
     poster_url: DataTypes.STRING,
     plot: DataTypes.STRING,

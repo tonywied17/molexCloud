@@ -223,10 +223,20 @@ export const getPlexRequestsByName = async (name) => {
   }
 };
 
-//! Add a plex request
-export const addPlexRequest = async (type, request) => {
+//! Get Plex Requests by imdbID
+export const getPlexRequestsByImdbID = async (imdbID) => {
   try {
-    const response = await api.post('/plex/request', { type, request });
+    const response = await api.get(`/plex/requests/${imdbID}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Add a plex request
+export const addPlexRequest = async (type, imdbID, request ) => {
+  try {
+    const response = await api.post('/plex/request', { type, imdbID, request });
     return response;
   } catch (error) {
     throw error;

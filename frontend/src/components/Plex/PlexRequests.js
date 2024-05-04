@@ -113,7 +113,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const handleRequest = async (result) => {
         console.log(result);
         try {
-            const response = await addPlexRequest(result.Type, result.Title);
+            const response = await addPlexRequest(result.Type, result.imdbID, result.Title);
             console.log(response);
             if (response.status === 200) {
                 await sendToDiscordWebhook(selectedResult || result, username);

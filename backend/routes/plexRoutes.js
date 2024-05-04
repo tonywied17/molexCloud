@@ -4,7 +4,7 @@
  * Created Date: Sunday April 21st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 10:08:31 
+ * Last Modified: Sat May 4th 2024 5:39:04 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -80,6 +80,14 @@ const routes = [
     middleware: [],
     handler: plexController.getPlexRequestsByName,
     description: 'Get plex requests',
+    prefix: '/plex'
+  },
+  {
+    method: 'get',
+    path: '/requests/:requestId',
+    middleware: [],
+    handler: plexController.getPlexRequestsByImdbID,
+    description: 'Get plex request by id',
     prefix: '/plex'
   },
   {

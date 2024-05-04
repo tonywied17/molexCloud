@@ -4,7 +4,7 @@
  * Created Date: Wednesday May 1st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 3:07:37 
+ * Last Modified: Sat May 4th 2024 5:33:37 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -18,6 +18,10 @@ const PlexRequest = sequelize.define('PlexRequest', {
     type: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    imdbID: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
     request: {
         type: DataTypes.STRING,

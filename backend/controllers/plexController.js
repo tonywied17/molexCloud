@@ -4,7 +4,7 @@
  * Created Date: Monday April 22nd 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 10:08:16 
+ * Last Modified: Sat May 4th 2024 5:45:55 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -48,6 +48,7 @@ const plexRecentlyAddedWebhook = async (req, res) => {
         const {
             media_type,
             title,
+            imdbID,
             release_year,
             poster_url,
             plot,
@@ -57,12 +58,13 @@ const plexRecentlyAddedWebhook = async (req, res) => {
             runtime,
             imdbRating,
             plexRating,
-            plex_library_url
+            plex_library_url,
         } = req.body.data;
 
         const plexItem = await PlexItem.create({
             media_type,
             title,
+            imdbID,
             release_year,
             poster_url,
             plot,
@@ -77,10 +79,11 @@ const plexRecentlyAddedWebhook = async (req, res) => {
         const [showsRefreshData, moviesRefreshData] = await refreshPlexLibraries(title);
 
         console.log(`${title} added! Plex Libraries Refreshed!`);
-        
-        const plexRequest = await PlexRequest.findOne({ where: { request: title } });
+        console.log(`checking for request with imdbID: ${imdbID}`)
+        const plexRequest = await PlexRequest.findOne({ where: { imdbID: imdbID } });
         if (plexRequest) {
-            await PlexRequest.update({ status: 'fulfilled' }, { where: { request: title } });
+            await PlexRequest.update({ status: 'fulfilled' }, { where: { imdbID: imdbID } });
+            console.log(`Plex request fulfilled`);
         }
 
         res.status(201).json({ message: 'Plex item saved successfully', data: plexItem, showsRefreshData, moviesRefreshData });
@@ -190,14 +193,14 @@ const deleteAllRecentlyAdded = async (req, res) => {
 // ? if plex request title exists don't add it to the database and return a message
 const addPlexRequest = async (req, res) => {
     try {
-        const { type, request } = req.body;
+        const { type, imdbID, request } = req.body;
         console.log('Request:', request);
         const plexRequest = await PlexRequest.findOne({ where: { request } });
         if (plexRequest) {
             console.log('Plex request already exists');
             return res.status(201).json({ message: 'Plex request already exists' });
         }
-        await PlexRequest.create({ type, request });
+        await PlexRequest.create({ type, imdbID, request });
         res.json({ message: 'Plex request added successfully' });
     }
     catch (error) {
@@ -206,12 +209,25 @@ const addPlexRequest = async (req, res) => {
     }
 }
 
-//! Get Plex requests
+//! Get Plex requests by name
 //? Get plex requests with name query parameter compare again 'request' column
 const getPlexRequestsByName = async (req, res) => {
     try {
         const { name } = req.query;
         const plexRequests = await PlexRequest.findAll({ where: { request: { [Op.iLike]: `%${name}%` } } });
+        res.json({ data: plexRequests });
+    } catch (error) {
+        console.error('Error fetching Plex requests:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+//! Get Plex requests by imdbID
+//? Get Plex requests by imdbID
+const getPlexRequestsByImdbID = async (req, res) => {
+    try {
+        const { imdbID } = req.query;
+        const plexRequests = await PlexRequest.findAll({ where: { imdbID } });
         res.json({ data: plexRequests });
     } catch (error) {
         console.error('Error fetching Plex requests:', error);
@@ -282,6 +298,7 @@ module.exports = {
     addPlexRequest,
     getAllPlexRequests,
     getPlexRequestsByName,
+    getPlexRequestsByImdbID,
     updateStatus,
     deleteAllPlexRequests,
     deletePlexRequest

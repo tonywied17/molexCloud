@@ -126,7 +126,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 );
                 onRequestSuccess(result.Title).then(() => {
                     let time = new Date();
-                    setPlexRequests(prevRequests => [...prevRequests, { request: result.Title, status: 'pending', createdAt: time}]);
+                    setPlexRequests(prevRequests => [...prevRequests, { request: result.Title, status: 'pending', updatedAt: time}]);
                 });
             } else if (response.status === 201) {
                 alert('Request already exists asshole');
@@ -137,14 +137,6 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         }
     };
 
-    const updateRequests = async () => {
-        try {
-            const response = await getPlexRequests();
-            setPlexRequests(response.data);
-        } catch (error) {
-            console.error('Error fetching Plex requests:', error);
-        }
-    };
 
     const checkInRequests = async (title) => {
         try {
@@ -224,7 +216,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                 </div>
                                 <div className='requestBottom'>
                                     <div className='requestStatus'>Status <span className={`status ${request.status}`}>{cap(request.status)}</span></div>
-                                    <div className='requestYear'>{formatDateTime(request.createdAt)}</div>
+                                    <div className='requestYear'>{formatDateTime(request.updatedAt) || formatDateTime(request.createdAt)}</div>
                                 </div>
                             </div>
                             {isRole('admin') && (

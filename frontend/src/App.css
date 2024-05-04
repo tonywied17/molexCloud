@@ -391,23 +391,33 @@ h2 {
   border: 1px solid #c26b6b7c;
   color: #c26b6b7c;
 }
-.button.plexSelect {
-  background: #e5a00d;
-  color: #000000f1;
-  font-weight: 700;
+.button.plexSelect:not(.inLibraryBtn) {
+  background: #e5a10d4d;
+  color: #e5a00d;
+  border: 1px solid #e5a10d;
+  font-weight: 500;
   font-size: 16px;
+  padding: 1.2em 1em;
 }
-.button.plexSelect.request {
+.button.plexSelect.request:not(.inLibraryBtn) {
+  background: #e5a10d1a;
+  border: 1px solid #7256198a;
+  padding: 0.75em 0.8em;
   font-size: 1.1rem;
+  transition: background-color 0.5s ease;
+}
+.button.plexSelect.request:not(.inLibraryBtn):hover {
+  background-color: #e5a10d71;
 }
 .button.plexDetailsBtn {
   background: transparent !important;
-  border: #e5a10d8a 1px solid;
+  border: #7256198a 1px solid;
   color: #e5a10d8a;
   font-weight: 500;
   font-size: 16px;
   min-width: 150px;
 }
+
 .searchBtn {
   display: flex;
   flex-direction: row;
@@ -1125,11 +1135,25 @@ input[type="checkbox"] {
   gap: 10px;
   padding: 1em;
   border-radius: 5px;
-  background: #b1b1b11c;
+  background: #3333331c;
   width: 100%;
   border: 1px solid #ffffff2f;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.plexRequests {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 1em;
+  border-radius: 5px;
+  background: #181818;
+  width: 100%;
+  border: 1px solid #16161688;
+  align-items: flex-start;
+  justify-content: space-between;
+
 }
 
 .resultYear {
@@ -1364,10 +1388,16 @@ input[type="password"] {
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 10px;
 }
+.recentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1em;
+}
 .requestsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(222px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 10px;
+  margin-bottom: 3em;
 }
 .resultTitle {
   font-size: 1.2rem;
@@ -1462,10 +1492,28 @@ input[type="password"] {
 .plexHeader {
   font-weight: 400;
   font-size: 1.5rem;
-  margin: 1em 0;
+  margin-top: 1em;
+  margin-bottom: 5px;
   color: #e5a10d81;
   border-bottom: 1px dotted #e5a10d81;
   padding-bottom: 0.5em;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.plexRequestHeader, .plexRecentHeader {
+  font-weight: 400;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+  color: #e5a10d81;
+  /* border-bottom: 1px dotted #e5a10d81; */
+  padding-bottom: 0.25em;
+}
+
+.plexRecentHeader {
+  margin-top: 3em;
 }
 
 .plexPosterDetailsRecent {
@@ -1502,6 +1550,7 @@ input[type="password"] {
   font-size: 0.9rem;
   border-radius: 5px;
   white-space: nowrap;
+  padding: 0.8em 1em;
 }
 
 .titleYear {

@@ -22,7 +22,7 @@ const PlexRecentlyAdded = () => {
 
     return (
 
-        <div className='resultsGrid'>
+        <div className='recentGrid'>
             {recentlyAdded.map(item => (
                 <div className='plexResults recentPage' key={item.id}>
                     <div className='plexPosterDetailsRecent'>

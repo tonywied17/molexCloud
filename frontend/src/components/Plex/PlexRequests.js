@@ -6,7 +6,10 @@ import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
 import { getPlexRequests, addPlexRequest, updatePlexRequestStatus, deletePlexRequest } from '../../services/api';
 import axios from 'axios';
-
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchYear, setSearchYear] = useState('');
@@ -19,17 +22,6 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const imdbID = window.location.pathname.split('/').pop();
 
     useEffect(() => {
-        if (imdbID) {
-            if (imdbID === 'plex') return;
-            handleAutoSearch(imdbID);
-        }
-    }, [imdbID]);
-
-    useEffect(() => {
-    }, [username]);
-
-
-    useEffect(() => {
         const fetchRequests = async () => {
             try {
                 const response = await getPlexRequests();
@@ -40,20 +32,43 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         };
         fetchRequests();
     }, []);
+    
+    useEffect(() => {
+        if (imdbID) {
+            if (!imdbID.includes('tt')) return;
+            console.log('imdbID:', imdbID);
+            getPlexRequests().then((response) => {
+                console.log(response.data);
+                setPlexRequests(response.data);
+                handleAutoSearch(imdbID);
+            });
+        }
+    }, [imdbID]);
+    
+    
+
+    useEffect(() => {
+    }, [username]);
+
 
     const handleAutoSearch = async (imdbID) => {
         try {
             setLoading(true);
+
             const details = await getIMDbDetails(imdbID);
             const inLibrary = await checkInLibrary(details.Title, details.Year);
             const inRequests = await checkInRequests(details.Title);
+
             setSelectedResult({ ...details, inLibrary, inRequests });
+
         } catch (error) {
             console.error('Error fetching IMDb details:', error);
         } finally {
             setLoading(false);
         }
     };
+    
+    
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -109,7 +124,10 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                             : prevResult
                     )
                 );
-                onRequestSuccess(result.Title);
+                onRequestSuccess(result.Title).then(() => {
+                    let time = new Date();
+                    setPlexRequests(prevRequests => [...prevRequests, { request: result.Title, status: 'pending', createdAt: time}]);
+                });
             } else if (response.status === 201) {
                 alert('Request already exists asshole');
             }
@@ -119,20 +137,31 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         }
     };
 
+    const updateRequests = async () => {
+        try {
+            const response = await getPlexRequests();
+            setPlexRequests(response.data);
+        } catch (error) {
+            console.error('Error fetching Plex requests:', error);
+        }
+    };
 
     const checkInRequests = async (title) => {
         try {
             if (!plexRequests) {
                 setPlexRequests(await getPlexRequests());
             };
-
-            const matchingRequest = plexRequests.find(request => request.request.toLowerCase() === title.toLowerCase());
+            console.log(plexRequests)
+            const matchingRequest = plexRequests.find(request => request.request.toLowerCase() === title.toLowerCase() && request.status === 'pending');
+            console.log(matchingRequest);
             return !!matchingRequest;
         } catch (error) {
             console.error('Error checking Plex requests:', error);
             return false;
         }
     };
+    
+
 
     const checkInLibrary = async (title, year) => {
         try {
@@ -181,107 +210,109 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
     return (
         <div ref={ref}>
+        {/* list recent plex requests */}
+        {plexRequests && (
+            <>
+            <div className='plexRequestHeader'>Recently Requested</div>
+            <div className='requestsGrid'>
+                {plexRequests.map((request) => (
+                    <div key={request.id} className='plexRequests searchPage'>
+                        <div className='plexRequestDetails'>
+                            <div className='requestInfo'>
+                                <div className='titleYear'>
+                                    <div className='requestTitle'>{request.request}</div>
+                                </div>
+                                <div className='requestBottom'>
+                                    <div className='requestStatus'>Status <span className={`status ${request.status}`}>{cap(request.status)}</span></div>
+                                    <div className='requestYear'>{formatDateTime(request.createdAt)}</div>
+                                </div>
+                            </div>
+                            {isRole('admin') && (
+                                <div className='adminButtons'>
+                                    {request.status === 'pending' && (
+                                        <button className='button request' onClick={() => {
+                                            updatePlexRequestStatus(request.request, 'fulfilled')
+                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'fulfilled' } : req));
+                                        }}>Fulfill</button>
+                                    )}
+                                    {request.status === 'pending' && (
+                                        <button className='button request' onClick={() => {
+                                            updatePlexRequestStatus(request.request, 'rejected')
+                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'rejected' } : req));
+                                        }}>Reject</button>
+                                    )}
+                                    {(request.status === 'fulfilled' || request.status === 'rejected') && (
+                                        <button className='button request' onClick={() => {
+                                            updatePlexRequestStatus(request.request, 'pending');
+                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'pending' } : req));
+                                        }}>Unfulfill</button>
+                                    )}
+                                    {/* delete request */}
+                                    <button className='button request' onClick={() => {
+                                        if (window.confirm('Are you sure you want to delete this request?')) {
+                                            deletePlexRequest(request.id);
+                                            setPlexRequests(plexRequests.filter(req => req.id !== request.id));
+                                        }
+                                    }}>Delete</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            </>
+        )}
+    
+            <div className='plexHeader'><SearchIcon />Search IMDB</div>
+    
             <form onSubmit={handleSearch}>
                 <div className='imdbSearch'>
                     <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder='Enter a movie or series title...' />
                     <input type="text" value={searchYear} onChange={(e) => setSearchYear(e.target.value)} placeholder="Optional: Release Year" className='searchYear' />
-                    <button type="submit" className='button plexDetailsBtn searchBtn'><i className="fa-solid fa-magnifying-glass"></i>Search IMDB</button>
+                    <button type="submit" className='button plexSelect searchBtn'><i className="fa-solid fa-magnifying-glass"></i>Search IMDB</button>
                 </div>
             </form>
-
-            {loading &&
+    
+            {loading && (
                 <div className="loadingContainer">
                     <div className='loadingText'>Fetching IMDB results and comparing to Plex Library... (doing shit)</div>
                     <div className="loading"></div>
-
                 </div>
-            } {/* Loading indicator */}
-
-            {!searchResults && plexRequests && <div className='plexHeader'>Recent Requests</div>}
-
-
-            {/* list recent plex requests */}
-            {!searchResults && plexRequests && <div className='requestsGrid'>
-
-                {plexRequests
-                    // .filter(request => request.status === 'pending')
-                    .map((request) => (
-                        <div key={request.id} className='plexResults searchPage'>
-                            <div className='plexRequestDetails'>
-                                <div className='requestInfo'>
+            )}
+    
+            {/* Loading indicator */}
+    
+            {!selectedResult && searchResults && (
+                <div className='resultsGrid'>
+                    {searchResults.map((result) => (
+                        <div key={result.imdbID} className='plexResults searchPage'>
+                            <div className='plexPosterDetails'>
+                                <div className='searchFlex'>
+                                    <img className='plexPoster' src={result.Poster} alt={result.Title} />
+                                    {result.inLibrary && <div className='inLibrary'>In Library</div>}
+                                    {result.inRequests && <div className='inRequests'>Requested</div>}
+                                </div>
+                                <div className='resultsInfo'>
                                     <div className='titleYear'>
-                                        <div className='requestTitle'>{request.request}</div>
+                                        <div className='resultTitle'>{result.Title}</div>
+                                        <div className='resultYear'>{result.Year}</div>
                                     </div>
-                                    <div className='requestBottom'>
-                                        <div className='requestStatus'>Status <span className={`status ${request.status}`}>{cap(request.status)}</span></div>
-                                        <div className='requestYear'>{formatDateTime(request.createdAt)}</div>
+                                    <div className='searchButtons'>
+                                        <button className='button plexDetailsBtn' onClick={() => handleSelect(result.imdbID)}><InfoOutlinedIcon/> Details</button>
+                                        {!result.inRequests && !result.inLibrary && (
+                                            <button className='button plexSelect request' onClick={() => handleRequest(result)}>
+                                               <AddIcon/> Request {cap(result.Type)}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
-                                {isRole('admin') && (
-                                    <div className='adminButtons'>
-                                        {request.status == 'pending' && <button className='button request' onClick={() => {
-                                            updatePlexRequestStatus(request.request, 'fulfilled')
-                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'fulfilled' } : req));
-                                        }}>Fulfill</button>}
-                                        {request.status == 'pending' && <button className='button request' onClick={() => {
-                                            updatePlexRequestStatus(request.request, 'rejected')
-                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'rejected' } : req));
-                                        }}>Reject</button>}
-                                        {(request.status === 'fulfilled' || request.status === 'rejected') &&
-                                            <button className='button request' onClick={() => {
-                                                updatePlexRequestStatus(request.request, 'pending');
-                                                setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'pending' } : req));
-                                            }}>Unfulfill</button>
-                                        }
-
-                                        {/* delete request */}
-                                        <button className='button request' onClick={() => {
-                                            if (window.confirm('Are you sure you want to delete this request?')) {
-                                                deletePlexRequest(request.id);
-                                                setPlexRequests(plexRequests.filter(req => req.id !== request.id));
-                                            }
-                                        }}>Delete</button>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     ))}
-
-
-            </div>}
-
-            {!selectedResult && searchResults && <div className='resultsGrid'>
-                {searchResults.map((result) => (
-                    <div key={result.imdbID} className='plexResults searchPage'>
-                        <div className='plexPosterDetails'>
-                            <div className='searchFlex'>
-                                <img className='plexPoster' src={result.Poster} alt={result.Title} />
-                                {result.inLibrary && <div className='inLibrary'>In Library</div>}
-                                {result.inRequests && <div className='inRequests'>Requested</div>}
-                            </div>
-                            <div className='resultsInfo'>
-                                <div className='titleYear'>
-                                    <div className='resultTitle'>{result.Title}</div>
-                                    <div className='resultYear'>{result.Year}</div>
-                                </div>
-                                <div className='searchButtons'>
-                                    {<button className='button plexDetailsBtn' onClick={() => handleSelect(result.imdbID)}>{cap(result.Type)} Info</button>}
-                                    {!result.inRequests && !result.inLibrary && (
-                                        <button className='button plexSelect request' onClick={() => handleRequest(result)}>
-                                            Request {cap(result.Type)}
-                                        </button>
-                                    )}
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-
-            </div>}
-
-
-            {selectedResult &&
+                </div>
+            )}
+    
+            {selectedResult && (
                 <div className='plexResults'>
                     <div className='plexPosterDetails'>
                         <div className='plexSelector'>
@@ -295,9 +326,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                     {!selectedResult.inLibrary && !selectedResult.inRequests && (
                                         <button className='button plexSelect request' onClick={() => handleRequest(selectedResult)}>Request {cap(selectedResult.Type)}</button>
                                     )}
-                                    {selectedResult.inRequests && (
-                                        <button className='button plexSelect request inRequestsBtn' disabled>Request Exists</button>
-                                    )}
+                                    {selectedResult.inRequests && <button className='button plexSelect request inRequestsBtn' disabled>Request Exists</button>}
                                     <button className='button plexDetailsBtn' onClick={
                                         () => window.open(`https://www.imdb.com/title/${selectedResult.imdbID}`, '_blank')
                                     }>View IMDB</button>
@@ -305,7 +334,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                 </div>
                             </div>
                         </div>
-
+    
                         <div className='plexDetails'>
                             <div className='title'>{selectedResult.Title}</div>
                             <div className='year'>{selectedResult.Year}</div>
@@ -313,9 +342,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                 <div className='rated'>{selectedResult.Rated}</div>
                                 <div className='runtime'><i className="fa-solid fa-stopwatch"></i> {selectedResult.Runtime}</div>
                             </div>
-
                             <div className='genres'>{selectedResult.Genre}</div>
-
                             <div className='plot'>
                                 <div>{selectedResult.Plot}</div>
                             </div>
@@ -327,13 +354,14 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                         </div>
                     </div>
                 </div>
-            }
-
-            {!selectedResult && <div className='plexHeader'>Newly Added to Server</div>}
+            )}
+    
+            {!selectedResult && <div className='plexRecentHeader'>Recently Added</div>}
             {!selectedResult && <PlexRecentlyAdded />}
-
+    
         </div>
     );
+    
 });
 
 export default PlexRequests;

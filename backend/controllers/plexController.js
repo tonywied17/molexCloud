@@ -4,7 +4,7 @@
  * Created Date: Monday April 22nd 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Wed May 1st 2024 10:06:41 
+ * Last Modified: Sat May 4th 2024 10:08:16 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -257,6 +257,18 @@ const deleteAllPlexRequests = async (req, res) => {
     }
 }
 
+//! Delete plex request by id
+//? Delete a single Plex request from the database
+const deletePlexRequest = async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        await PlexRequest.destroy({ where: { id: requestId } });
+        res.json({ message: 'Plex request deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting Plex request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
 
 
 module.exports = {
@@ -271,5 +283,6 @@ module.exports = {
     getAllPlexRequests,
     getPlexRequestsByName,
     updateStatus,
-    deleteAllPlexRequests
+    deleteAllPlexRequests,
+    deletePlexRequest
 };

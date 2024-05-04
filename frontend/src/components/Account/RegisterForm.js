@@ -8,14 +8,13 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
   const [inviteCode, setInviteCode] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
 
-  // Function to generate a random invite code once during component initialization
   useEffect(() => {
     const generateInviteCode = () => {
-      const randomCode = Math.random().toString(36).substr(2, 7); // Generate a random code
-      setInviteCode(randomCode); // Set the generated code as the invite code state
+      const randomCode = Math.random().toString(36).substr(2, 7); 
+      setInviteCode(randomCode);
     };
 
-    generateInviteCode(); // Call the function to generate the invite code once during initialization
+    generateInviteCode(); 
   }, []);
 
   const handleSubmit = async (e) => {

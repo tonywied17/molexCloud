@@ -4,7 +4,7 @@
  * Created Date: Friday April 12th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Thu May 2nd 2024 7:14:17 
+ * Last Modified: Sat May 4th 2024 9:50:41 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -12,7 +12,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, isRole, authenticateAndAuthorize } = require('../middleware/authMiddleware');
+const { authenticateToken, authenticateAndAuthorize } = require('../middleware/authMiddleware');
 const fileController = require('../controllers/fileController');
 
 const routes = [
@@ -43,7 +43,7 @@ const routes = [
   {
     method: 'post',
     path: '/record',
-    middleware: [authenticateToken],
+    middleware: [authenticateAndAuthorize()],
     handler: fileController.createFileRecord,
     description: 'Create file record',
     prefix: '/files'

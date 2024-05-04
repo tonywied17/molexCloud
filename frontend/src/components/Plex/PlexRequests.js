@@ -4,7 +4,7 @@ import { searchIMDb, getIMDbDetails, sendToDiscordWebhook } from '../../services
 import { cap, replaceSpecialCharacters, formatDateTime } from '../../services/helpers';
 import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
-import { getPlexRequests, addPlexRequest } from '../../services/api';
+import { getPlexRequests, addPlexRequest, updatePlexRequestStatus, deletePlexRequest } from '../../services/api';
 import axios from 'axios';
 
 const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
@@ -14,7 +14,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const [plexRequests, setPlexRequests] = useState([]);
     const [selectedResult, setSelectedResult] = useState(null);
     const [loading, setLoading] = useState(false);
-    const { username } = useContext(AuthContext);
+    const { username, isRole } = useContext(AuthContext);
     const navigate = useNavigate();
     const imdbID = window.location.pathname.split('/').pop();
 
@@ -27,6 +27,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
     useEffect(() => {
     }, [username]);
+
 
     useEffect(() => {
         const fetchRequests = async () => {
@@ -196,26 +197,52 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 </div>
             } {/* Loading indicator */}
 
-            {!searchResults && plexRequests && <div className='plexHeader'>Pending Requests</div>}
+            {!searchResults && plexRequests && <div className='plexHeader'>Recent Requests</div>}
 
 
             {/* list recent plex requests */}
             {!searchResults && plexRequests && <div className='requestsGrid'>
 
                 {plexRequests
-                    .filter(request => request.status === 'pending')
+                    // .filter(request => request.status === 'pending')
                     .map((request) => (
                         <div key={request.id} className='plexResults searchPage'>
-                            <div className='plexPosterDetails'>
+                            <div className='plexRequestDetails'>
                                 <div className='requestInfo'>
                                     <div className='titleYear'>
                                         <div className='requestTitle'>{request.request}</div>
                                     </div>
                                     <div className='requestBottom'>
-                                        <div className='requestStatus'>Status <span>{cap(request.status)}</span></div>
+                                        <div className='requestStatus'>Status <span className={`status ${request.status}`}>{cap(request.status)}</span></div>
                                         <div className='requestYear'>{formatDateTime(request.createdAt)}</div>
                                     </div>
                                 </div>
+                                {isRole('admin') && (
+                                    <div className='adminButtons'>
+                                        {request.status == 'pending' && <button className='button request' onClick={() => {
+                                            updatePlexRequestStatus(request.request, 'fulfilled')
+                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'fulfilled' } : req));
+                                        }}>Fulfill</button>}
+                                        {request.status == 'pending' && <button className='button request' onClick={() => {
+                                            updatePlexRequestStatus(request.request, 'rejected')
+                                            setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'rejected' } : req));
+                                        }}>Reject</button>}
+                                        {(request.status === 'fulfilled' || request.status === 'rejected') &&
+                                            <button className='button request' onClick={() => {
+                                                updatePlexRequestStatus(request.request, 'pending');
+                                                setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'pending' } : req));
+                                            }}>Unfulfill</button>
+                                        }
+
+                                        {/* delete request */}
+                                        <button className='button request' onClick={() => {
+                                            if (window.confirm('Are you sure you want to delete this request?')) {
+                                                deletePlexRequest(request.id);
+                                                setPlexRequests(plexRequests.filter(req => req.id !== request.id));
+                                            }
+                                        }}>Delete</button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}

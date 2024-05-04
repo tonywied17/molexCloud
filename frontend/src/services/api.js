@@ -232,3 +232,41 @@ export const addPlexRequest = async (type, request) => {
     throw error;
   }
 };
+
+//! Update Plex request status
+export const updatePlexRequestStatus = async (name, status) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+    const response = await api.post(`/plex/requests/${name}`, { 
+      status 
+    },{
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Delete plex request
+export const deletePlexRequest = async (requestId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token not found in localStorage');
+    }
+    const response = await api.delete(`/plex/requests/${requestId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

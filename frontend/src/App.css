@@ -1248,6 +1248,33 @@ input[type="checkbox"] {
   height: 100%;
 }
 
+.plexRequestDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  width: 100%;
+}
+
+.adminButtons {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 5px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* .adminButtons .button:nth-child(2) {
+  background: #ff000031;
+  color: #ff0000;
+  border: 1px solid #ff0000;
+}
+
+.adminButtons .button:nth-child(1) {
+  background: #09ff0050;
+  color: #09ff00ad;
+  border: 1px solid #09ff00ad;
+} */
+
 .plexDetails {
   display: flex;
   flex-direction: column;
@@ -1407,8 +1434,17 @@ input[type="password"] {
 }
 
 .requestStatus > span {
-  color: rgba(231, 233, 139, 0.678);
-  font-weight: 200;
+  font-weight: 300;
+}
+
+.status.fulfilled {
+  color: #6bc28c;
+}
+.status.pending {
+  color: #b3b44c;
+}
+.status.rejected {
+  color: #c26b6b;
 }
 
 .requestYear {

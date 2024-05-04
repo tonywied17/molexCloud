@@ -14,8 +14,8 @@ const LoginForm = forwardRef(({ onLoginSuccess }, ref) => {
       localStorage.setItem('token', response.token);
       setIsLoggedIn(true);
       setUserId(response.userId);
-      setAuthUsername(response.username); // Update username in context
-      setRoles(response.roles || []); // Update roles in context, if available
+      setAuthUsername(response.username);
+      setRoles(response.roles || []); 
       onLoginSuccess();
     } catch (error) {
       let errorMessage = error.response.data.error;

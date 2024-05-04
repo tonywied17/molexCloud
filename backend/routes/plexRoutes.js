@@ -4,7 +4,7 @@
  * Created Date: Sunday April 21st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Thu May 2nd 2024 3:23:55 
+ * Last Modified: Sat May 4th 2024 10:08:31 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -12,7 +12,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticateBearerToken } = require('../middleware/authMiddleware');
+const { authenticateBearerToken, authenticateAndAuthorize } = require('../middleware/authMiddleware');
 const plexController = require('../controllers/plexController');
 
 const routes = [
@@ -69,7 +69,7 @@ const routes = [
   {
     method: 'post',
     path: '/requests/:name',
-    middleware: [authenticateBearerToken],
+    middleware: [authenticateAndAuthorize(['admin'])],
     handler: plexController.updateStatus,
     description: 'Update plex request status',
     prefix: '/plex'
@@ -100,8 +100,16 @@ const routes = [
   },
   {
     method: 'delete',
+    path: '/requests/:requestId',
+    middleware: [authenticateAndAuthorize(['admin'])],
+    handler: plexController.deletePlexRequest,
+    description: 'Delete plex request',
+    prefix: '/plex'
+  },
+  {
+    method: 'delete',
     path: '/recently-added/:id',
-    middleware: [authenticateBearerToken],
+    middleware: [authenticateAndAuthorize(['admin'])],
     handler: plexController.deleteRecentlyAddedItem,
     description: 'Delete recently added item',
     prefix: '/plex'

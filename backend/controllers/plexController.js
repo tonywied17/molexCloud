@@ -4,7 +4,7 @@
  * Created Date: Monday April 22nd 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 5:45:55 
+ * Last Modified: Sat May 4th 2024 11:23:08 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -135,6 +135,7 @@ const getRecentlyAddedByCount = async (req, res) => {
     }
 }
 
+
 //! Get a recently added movie or TV show by ID
 //? Get a single recently added movie or TV show from the database
 const getRecentlyAddedItem = async (req, res) => {
@@ -239,7 +240,21 @@ const getPlexRequestsByImdbID = async (req, res) => {
 //? Get all Plex requests from the database
 const getAllPlexRequests = async (req, res) => {
     try {
-        const plexRequests = await PlexRequest.findAll();
+        let plexRequests;
+
+        const count = parseInt(req.query.count);
+
+        if (!isNaN(count) && count > 0) {
+            plexRequests = await PlexRequest.findAll({
+                limit: count,
+                order: [['updatedAt', 'DESC']]
+            });
+        } else {
+            plexRequests = await PlexRequest.findAll({
+                order: [['updatedAt', 'DESC']]
+            });
+        }
+        
         res.json({ data: plexRequests });
     } catch (error) {
         console.error('Error fetching Plex requests:', error);

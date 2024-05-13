@@ -1,10 +1,10 @@
 /*
  * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\models\index.js
- * Project: c:\Users\tonyw\AppData\Local\Temp\scp10085\public_html\test\api\models
+ * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
  * Created Date: Tuesday April 16th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Thu May 2nd 2024 5:17:01 
+ * Last Modified: Mon May 13th 2024 5:26:00 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -67,6 +67,10 @@ async function initializeRoles() {
 
         await molex.addRole(adminRole);
         await molex.addRole(userRole);
+
+        // create dev invite codes pib and 23307
+        const pib = await UserInvite.create({ code: 'pib', UserId: molex.id });
+        const _23307 = await UserInvite.create({ code: '23307', UserId: molex.id });
 
         console.log('Roles were initialized successfully.');
     } catch (error) {

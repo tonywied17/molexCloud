@@ -25,8 +25,6 @@ export const getIMDbDetails = async (imdbID) => {
 export const sendToDiscordWebhook = async (selectedResult, username) => {
   try {
     const webhookURL = 'https://discord.com/api/webhooks/1231732928535461969/8NUdwBcT_M8mT-tAkNgLQL8-I6DTRFB8OLD4GaDkGRFI1OVZy6kFvp_IGaeif9DGotSH';
-    
-    const userIP = await getUserIP();
 
     const payload = {
       embeds: [
@@ -39,10 +37,7 @@ export const sendToDiscordWebhook = async (selectedResult, username) => {
             { name: 'Type', value: selectedResult.Type },
             { name: 'Year', value: selectedResult.Year },
             { name: 'IMDb Link', value: `[View on IMDb](https://www.imdb.com/title/${selectedResult.imdbID})` },
-            { name: 'Requester', value: `
-            ${username && userIP 
-              ? username + ' - ' + userIP 
-              : userIP && !username ? userIP : 'Unknown'}`}
+            { name: 'Requester', value: `${username ? username : 'Unknown'}`}
           ],
           timestamp: new Date().toISOString()
         }
@@ -53,17 +48,6 @@ export const sendToDiscordWebhook = async (selectedResult, username) => {
     console.log('Message sent to Discord webhook');
   } catch (error) {
     console.error('Error sending message to Discord webhook:', error);
-    throw error;
-  }
-};
-
-export const getUserIP = async () => {
-  try {
-    // TODO: make my own express endpoint to get user IP
-    const response = await axios.get('https://api64.ipify.org?format=json');
-    return response.data.ip;
-  } catch (error) {
-    console.error('Error getting user IP:', error);
     throw error;
   }
 };

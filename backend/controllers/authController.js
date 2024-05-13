@@ -4,7 +4,7 @@
  * Created Date: Tuesday April 16th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Thu May 2nd 2024 2:39:19 
+ * Last Modified: Mon May 13th 2024 5:34:57 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -18,23 +18,25 @@ require("dotenv").config({ path: "/home/tbz/envs/molexCloud/.env" });
 //! User registration
 //? Register a new user with a valid invite code
 async function register(req, res) {
+  let userInvite;
   const { username, password, inviteCode } = req.body;
+
   try {
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
       return res.status(401).json({ error: '[ERROR] Username already exists' });
     }
-
-    let userInvite;
+    
     if (inviteCode === '23307' || inviteCode === 'pib') {
-      userInvite = { isUsed: false }; 
+      userInvite = { isUsed: false };
     } else {
-      userInvite = await UserInvite.findOne({ where: { code: inviteCode, isUsed: false } });
-      if (!userInvite) {
-        return res.status(401).json({ error: '[ERROR] Invalid invite code provided or it was already used.' });
+      try {
+        userInvite = await UserInvite.findOne({ where: { code: inviteCode, isUsed: false } });
+        userInvite.isUsed = true;
+        await userInvite.save();
+      } catch (error) {
+        return res.status(401).json({ error: '[ERROR] Code provided was already used.' });
       }
-      userInvite.isUsed = true;
-      await userInvite.save();
     }
 
     if (password.length < 3) {
@@ -66,7 +68,7 @@ async function register(req, res) {
 async function login(req, res) {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       where: { username },
       include: [{ model: Role }]
     });
@@ -96,7 +98,7 @@ async function generateInviteCode(req, res) {
   try {
     const userId = req.user.userId;
     const code = Math.random().toString(36).substr(2, 8);
-    
+
     const invite = await UserInvite.create({ code, UserId: userId });
 
     res.status(200).json({ code: invite.code });
@@ -122,7 +124,7 @@ async function getUserInviteCodes(req, res) {
 
 //! Delete Invite Code
 //? Delete an invite code for the user
-async function deleteUserInviteCode (req, res) {
+async function deleteUserInviteCode(req, res) {
   try {
     const userId = req.user.userId;
     const codeId = req.params.codeId;
@@ -139,9 +141,9 @@ async function deleteUserInviteCode (req, res) {
 }
 
 module.exports = {
-    register,
-    login,
-    generateInviteCode,
-    getUserInviteCodes,
-    deleteUserInviteCode
+  register,
+  login,
+  generateInviteCode,
+  getUserInviteCodes,
+  deleteUserInviteCode
 };

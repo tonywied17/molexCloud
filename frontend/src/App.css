@@ -163,6 +163,9 @@
   .navButtons {
     flex-direction: column !important;
   }
+  .recentGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)) !important;
+  }
 }
 
 .toggleMobileTabs{
@@ -749,9 +752,13 @@ h2 {
   font-size: 1rem;
   font-weight: 300;
 }
-.formHeader div:nth-child(1) > span {
+.openReg {
   font-weight: 700;
   color: #6bc28ce0;
+}
+.closedReg {
+  font-weight: 700;
+  color: #c26b6be0;
 }
 .formContainer {
   padding: 1em;

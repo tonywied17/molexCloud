@@ -4,7 +4,7 @@ import { searchIMDb, getIMDbDetails, sendToDiscordWebhook } from '../../services
 import { cap, replaceSpecialCharacters, formatDateTime } from '../../services/helpers';
 import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
-import { getPlexRequests, addPlexRequest, updatePlexRequestStatus, deletePlexRequest } from '../../services/api';
+import { getPlexRequests, addPlexRequest, updatePlexRequestStatus, deletePlexRequest, getPlexItemsByImdbID } from '../../services/api';
 import axios from 'axios';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -38,11 +38,13 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         if (imdbID) {
             if (!imdbID.includes('tt')) return;
             console.log('imdbID:', imdbID);
+
             getPlexRequests().then((response) => {
                 console.log(response.data);
                 setPlexRequests(response.data);
                 handleAutoSearch(imdbID);
             });
+          
         }
     }, [imdbID]);
 
@@ -57,7 +59,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             setLoading(true);
 
             const details = await getIMDbDetails(imdbID);
-            const inLibrary = await checkInLibrary(details.Title, details.Year);
+            const inLibrary = await checkInLibrary(details.Title, details.Year, details.imdbID, details.Type);
             const inRequests = await checkInRequests(details.Title);
 
             setSelectedResult({ ...details, inLibrary, inRequests });
@@ -83,7 +85,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             setLoading(true);
             const results = await searchIMDb(searchTerm, searchYear);
             const resultsWithLibraryRequestsInfo = await Promise.all(results.map(async (result) => {
-                const inLibrary = await checkInLibrary(result.Title, result.Year);
+                const inLibrary = await checkInLibrary(result.Title, result.Year, result.imdbID, result.Type);
                 const inRequests = await checkInRequests(result.Title);
                 return { ...result, inLibrary, inRequests };
             }));
@@ -104,7 +106,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const handleSelect = async (result) => {
         const details = await getIMDbDetails(result);
         if (details) {
-            const inLibrary = await checkInLibrary(details.Title, details.Year);
+            const inLibrary = await checkInLibrary(details.Title, details.Year, details.imdbID, details.Type);
             const inRequests = await checkInRequests(details.Title);
             setSelectedResult({ ...details, inLibrary, inRequests });
         }
@@ -144,9 +146,8 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             if (!plexRequests) {
                 setPlexRequests(await getPlexRequests());
             };
-            console.log(plexRequests)
             const matchingRequest = plexRequests.find(request => request.request.toLowerCase() === title.toLowerCase() && request.status === 'pending');
-            console.log(matchingRequest);
+            console.log(title, matchingRequest ? 'Request exists' : 'Request does not exist');
             return !!matchingRequest;
         } catch (error) {
             console.error('Error checking Plex requests:', error);
@@ -156,7 +157,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
 
 
-    const checkInLibrary = async (title, year) => {
+    const checkInLibrary = async (title, year, imdbID, type) => {
         try {
             const sectionIds = [5, 8];
             const imdbTitle = replaceSpecialCharacters(title).toLowerCase();
@@ -165,7 +166,11 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 const { tvShowLibrary, movieLibrary } = response.data.data;
 
                 // Handling TV show data
-                if (tvShowLibrary && tvShowLibrary.response && tvShowLibrary.response.data && Array.isArray(tvShowLibrary.response.data.data)) {
+                if (tvShowLibrary && tvShowLibrary.response && tvShowLibrary.response.data && Array.isArray(tvShowLibrary.response.data.data) && type === 'series') {
+
+                    const recentById = await getPlexItemsByImdbID(imdbID);
+                    console.log('show', imdbID, recentById);
+
                     const matchingMedia = tvShowLibrary.response.data.data.filter(media => {
                         let plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
                         if (plexTitle === 'the office (us)') {
@@ -173,7 +178,8 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                         }
                         const titleMatch = imdbTitle.includes(plexTitle);
                         const yearMatch = year.includes(media.year);
-                        return titleMatch && yearMatch;
+                        const recentMatch = recentById.data;
+                        return titleMatch && yearMatch || recentMatch;
                     });
                     if (matchingMedia.length > 0) {
                         return true;
@@ -181,12 +187,16 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 }
 
                 // Handling movie data
-                if (movieLibrary && movieLibrary.response && movieLibrary.response.data && Array.isArray(movieLibrary.response.data.data)) {
+                if (movieLibrary && movieLibrary.response && movieLibrary.response.data && Array.isArray(movieLibrary.response.data.data) && type === 'movie') {
+
+                    const recentById = await getPlexItemsByImdbID(imdbID);
+                    console.log('movie', imdbID, recentById);
+
                     const matchingMedia = movieLibrary.response.data.data.filter(media => {
                         const plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
                         const titleMatch = imdbTitle.includes(plexTitle);
                         const yearMatch = year.includes(media.year);
-                        return titleMatch && yearMatch;
+                        return titleMatch && yearMatch || recentById.data;
                     });
                     if (matchingMedia.length > 0) {
                         return true;

@@ -203,15 +203,36 @@ export const getPlexItems = async () => {
   }
 };
 
-//! Get all Plex Requests
-export const getPlexRequests = async () => {
+//! Get all plex recently added items
+export const getAllPlexItems = async () => {
   try {
-    const response = await api.get('/plex/requests');
+    const response = await api.get('/plex/recently-added');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+//! Get plex recently added items by imdbID
+export const getPlexItemsByImdbID = async (imdbID) => {
+  try {
+    const response = await api.get(`/plex/recently-added/imdb/${imdbID}`);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
+
+//! Get 8 Plex Requests
+export const getPlexRequests = async () => {
+  try {
+    const response = await api.get('/plex/requests?count=8');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 
 //! Get Plex Requests by name
 export const getPlexRequestsByName = async (name) => {

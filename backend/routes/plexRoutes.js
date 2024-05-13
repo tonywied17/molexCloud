@@ -4,7 +4,7 @@
  * Created Date: Sunday April 21st 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 5:39:04 
+ * Last Modified: Mon May 13th 2024 6:20:57 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -48,6 +48,14 @@ const routes = [
     middleware: [],
     handler: plexController.getRecentlyAddedItem,
     description: 'Get recently added item',
+    prefix: '/plex'
+  },
+  {
+    method: 'get',
+    path: '/recently-added/imdb/:imdbID',
+    middleware: [],
+    handler: plexController.getAllRecentlyAddedbyImdbID,
+    description: 'Get all recently added by imdbID',
     prefix: '/plex'
   },
   {
@@ -116,8 +124,8 @@ const routes = [
   },
   {
     method: 'delete',
-    path: '/recently-added/:id',
-    middleware: [authenticateAndAuthorize(['admin'])],
+    path: '/recently-added/item/:id',
+    middleware: [authenticateBearerToken],
     handler: plexController.deleteRecentlyAddedItem,
     description: 'Delete recently added item',
     prefix: '/plex'

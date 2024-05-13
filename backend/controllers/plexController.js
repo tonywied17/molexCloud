@@ -4,7 +4,7 @@
  * Created Date: Monday April 22nd 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 11:23:08 
+ * Last Modified: Mon May 13th 2024 6:20:27 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -108,6 +108,25 @@ const refreshPlexLibraries = async (title) => {
     }
 };
 
+//! Get recently added items by imdbID
+const getAllRecentlyAddedbyImdbID = async (req, res) => {
+    let isFound = false;
+    try {
+        const { imdbID } = req.params;
+        console.log('Checking for item with imdbID:', imdbID);
+        const plexItems = await PlexItem.findAll({ where: { imdbID: imdbID } });
+        if(!plexItems.length) {
+            isFound = false;
+        } else {
+            isFound = true;
+        }
+        res.json({ data: isFound });
+    } catch (error) {
+        console.error('Error fetching Plex items:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
 
 //! Get recently added items
 //? Get recently added movies or TV shows from the database
@@ -153,9 +172,10 @@ const getRecentlyAddedItem = async (req, res) => {
 //? Delete a single recently added movie or TV show from the database
 const deleteRecentlyAddedItem = async (req, res) => {
     try {
-        let id = req.query.id;
+        const { id } = req.params;
+        console.log('Deleting item with id:', id)
         await PlexItem.destroy({ where: { id } });
-        res.json({ message: 'All Plex item deleted successfully' });
+        res.json({ id, message: 'Plex item deleted successfully' });
     } catch (error) {
         console.error('Error deleting Plex items:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -316,5 +336,6 @@ module.exports = {
     getPlexRequestsByImdbID,
     updateStatus,
     deleteAllPlexRequests,
-    deletePlexRequest
+    deletePlexRequest,
+    getAllRecentlyAddedbyImdbID
 };

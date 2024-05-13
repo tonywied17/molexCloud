@@ -1,10 +1,10 @@
 /*
  * File: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files\backend\routes\fileRoutes.js
- * Project: c:\Users\tonyw\Desktop\Cloud File Manager\js-cloud-files
+ * Project: c:\Users\tonyw\AppData\Local\Temp\scp57495\public_html\test\api\routes
  * Created Date: Friday April 12th 2024
  * Author: Tony Wiedman
  * -----
- * Last Modified: Sat May 4th 2024 9:50:41 
+ * Last Modified: Mon May 13th 2024 6:04:24 
  * Modified By: Tony Wiedman
  * -----
  * Copyright (c) 2024 MolexWorks / Tone Web Design
@@ -35,7 +35,7 @@ const routes = [
   {
     method: 'post',
     path: '/upload/chunk',
-    middleware: [authenticateAndAuthorize()],
+    middleware: [{ fn: authenticateAndAuthorize, args: ['user'], name: 'authenticateAndAuthorize' }],
     handler: fileController.uploadFileChunkHTTP,
     description: 'Upload file chunk',
     prefix: '/files'
@@ -43,7 +43,7 @@ const routes = [
   {
     method: 'post',
     path: '/record',
-    middleware: [authenticateAndAuthorize()],
+    middleware: [{ fn: authenticateAndAuthorize, args: ['user'], name: 'authenticateAndAuthorize' }],
     handler: fileController.createFileRecord,
     description: 'Create file record',
     prefix: '/files'
@@ -51,7 +51,7 @@ const routes = [
   {
     method: 'delete',
     path: '/:id',
-    middleware: [authenticateAndAuthorize()],
+    middleware: [{ fn: authenticateAndAuthorize, args: ['user', 'admin'], name: 'authenticateAndAuthorize' }],
     handler: fileController.deleteFile,
     description: 'Delete file',
     prefix: '/files'
@@ -60,7 +60,8 @@ const routes = [
 
 routes.forEach(route => {
   const { method, path, middleware, handler, description } = route;
-  router[method](path, ...middleware, handler);
+  const appliedMiddleware = middleware.map(m => m.fn(...m.args));
+  router[method](path, ...appliedMiddleware, handler);
   console.log(`Registered route: [${method.toUpperCase()}] ${path} - ${description}`);
 });
 

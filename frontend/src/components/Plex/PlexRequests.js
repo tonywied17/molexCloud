@@ -9,7 +9,6 @@ import axios from 'axios';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -46,7 +45,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             });
           
         }
-    }, [imdbID]);
+    }, [imdbID, plexRequests]);
 
 
 
@@ -179,7 +178,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                         const titleMatch = imdbTitle.includes(plexTitle);
                         const yearMatch = year.includes(media.year);
                         const recentMatch = recentById.data;
-                        return titleMatch && yearMatch || recentMatch;
+                        return recentMatch || (titleMatch && yearMatch);
                     });
                     if (matchingMedia.length > 0) {
                         return true;
@@ -196,7 +195,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                         const plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
                         const titleMatch = imdbTitle.includes(plexTitle);
                         const yearMatch = year.includes(media.year);
-                        return titleMatch && yearMatch || recentById.data;
+                        return recentById.data || (titleMatch && yearMatch);
                     });
                     if (matchingMedia.length > 0) {
                         return true;

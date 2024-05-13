@@ -8,7 +8,7 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
   const [inviteCode, setInviteCode] = useState('');
   const [fakeCode, setFakeCode] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
-  const [openRegistration, setOpenRegistration] = useState(true);
+  const [openRegistration] = useState(true);
 
   useEffect(() => {
     const generateInviteCode = () => {

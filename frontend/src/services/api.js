@@ -224,9 +224,19 @@ export const getPlexItemsByImdbID = async (imdbID) => {
 };
 
 //! Get 8 Plex Requests
-export const getPlexRequests = async () => {
+export const getPlexRequestsByCount = async (count) => {
   try {
-    const response = await api.get('/plex/requests?count=8');
+    const response = await api.get('/plex/requests?count=' + count);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+//! Get all Plex Requests
+export const getAllPlexRequests = async () => {
+  try {
+    const response = await api.get('/plex/requests');
     return response.data;
   } catch (error) {
     throw error;

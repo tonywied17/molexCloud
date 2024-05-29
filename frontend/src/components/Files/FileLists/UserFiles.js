@@ -45,8 +45,8 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
 
 
   if (!files) {
-    return <p>Loading...</p>;
-  }
+    return files.error ? <div>{files.error}</div> : <div>Loading...</div>;
+  } 
 
   const fileList = files.files || [];
   const filteredFiles = fileList.filter((file) =>

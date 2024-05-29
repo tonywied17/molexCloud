@@ -8,7 +8,7 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
   const [inviteCode, setInviteCode] = useState('');
   const [fakeCode, setFakeCode] = useState('');
   const { setIsLoggedIn } = useContext(AuthContext);
-  const [openRegistration] = useState(true);
+  const [openRegistration] = useState(false);
 
   useEffect(() => {
     const generateInviteCode = () => {
@@ -24,7 +24,7 @@ const RegisterForm = forwardRef(({ onRegisterSuccess }, ref) => {
       setInviteCode('');
     }
   
-  }, [openRegistration]); // Add openRegistration to the dependency array
+  }, [openRegistration]);
   
 
 

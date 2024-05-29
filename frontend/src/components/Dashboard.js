@@ -361,14 +361,15 @@ const Dashboard = () => {
                 >
                   {username}'s Uploads
                 </button>
+                <button
+                  className={`tabButton plexTab ${activeTab === 'plex' ? 'active' : ''}`}
+                  onClick={() => handleTabClick('plex')}
+                >
+                  Plex Requests
+                </button>
               </>
             )}
-            <button
-              className={`tabButton plexTab ${activeTab === 'plex' ? 'active' : ''}`}
-              onClick={() => handleTabClick('plex')}
-            >
-              Plex Requests
-            </button>
+
           </div>
           <div className='tabsContent'>
             <Routes>

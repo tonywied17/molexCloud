@@ -166,6 +166,9 @@
   .recentGrid {
     grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)) !important;
   }
+  .plexRequestHeader {
+    flex-direction: column !important;
+  }
 }
 
 .toggleMobileTabs{
@@ -244,6 +247,7 @@ body {
   justify-content: center;
   align-items: flex-end;
   padding-right: 1em;
+  white-space: nowrap;
 }
 
 .fileAttribs div:nth-child(1) {
@@ -802,6 +806,23 @@ input {
   width: 100%;
 }
 
+select {
+  font-family: "Rajdhani", sans-serif;
+  background: #000000e3;
+  border: 1px solid #ffffff21;
+  border-radius: 3px;
+  color: #b3b3b3;
+  font-size: 1em;
+  padding: 0.5em;
+}
+
+.requestCountDropdown {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  font-size: 0.9rem;
+}
 
 input[type="checkbox"] {
   filter: brightness(2) invert(0.8);
@@ -895,6 +916,7 @@ input[type="checkbox"] {
   user-select: none;
   padding-left: 1em;
   color: #ffffff88;
+  white-space: nowrap;
 }
 
 .fileTypeIconContainer span {
@@ -951,16 +973,20 @@ input[type="checkbox"] {
 .myCodesContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
+  gap: .5em;
+  align-items: stretch;
+  align-content: flex-end;
+  justify-content: center;
+  width: 100%;
 }
 
 .usersInvitesContainer {
+  align-content: center;
+  /* align-items: center; */
   display: flex;
   flex-direction: row;
-  width: 100%;
-  justify-content: space-around;
-  align-content: center;
-  align-items: center;
+  padding: 0 2em;
+  justify-content: space-between;
 }
 
 .myCodesContainer div:nth-last-child(1) {
@@ -1546,6 +1572,11 @@ input[type="password"] {
   color: #e5a10d81;
   /* border-bottom: 1px dotted #e5a10d81; */
   padding-bottom: 0.25em;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .plexRecentHeader {

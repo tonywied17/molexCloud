@@ -4,73 +4,64 @@ import { searchIMDb, getIMDbDetails, sendToDiscordWebhook } from '../../services
 import { cap, replaceSpecialCharacters, formatDateTime } from '../../services/helpers';
 import { AuthContext } from '../../contexts/AuthContext';
 import PlexRecentlyAdded from './PlexRecentlyAdded';
-import { getPlexRequests, addPlexRequest, updatePlexRequestStatus, deletePlexRequest, getPlexItemsByImdbID } from '../../services/api';
+import { getPlexRequestsByCount, getAllPlexRequests, addPlexRequest, updatePlexRequestStatus, deletePlexRequest, getPlexItemsByImdbID } from '../../services/api';
 import axios from 'axios';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
 const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchYear, setSearchYear] = useState('');
     const [searchResults, setSearchResults] = useState(null);
-    const [plexRequests, setPlexRequests] = useState([]);
+    const [recentPlexRequests, setRecentPlexRequests] = useState([]);
+    const [allPlexRequests, setAllPlexRequests] = useState([]);
     const [selectedResult, setSelectedResult] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [requestCount, setRequestCount] = useState(5);
     const { username, isRole } = useContext(AuthContext);
     const navigate = useNavigate();
     const imdbID = window.location.pathname.split('/').pop();
 
     useEffect(() => {
-        const fetchRequests = async () => {
-            try {
-                const response = await getPlexRequests();
-                setPlexRequests(response.data);
-            } catch (error) {
-                console.error('Error fetching Plex requests:', error);
-            }
-        };
         fetchRequests();
-    }, []);
+    }, [requestCount]);
 
     useEffect(() => {
-        if (imdbID) {
-            if (!imdbID.includes('tt')) return;
-            console.log('imdbID:', imdbID);
-
-            getPlexRequests().then((response) => {
-                console.log(response.data);
-                setPlexRequests(response.data);
-                handleAutoSearch(imdbID);
-            });
-          
+        if (imdbID && imdbID.includes('tt')) {
+            handleAutoSearch(imdbID);
         }
-    }, [imdbID, plexRequests]);
+    }, [imdbID]);
 
-
-
-    useEffect(() => {
-    }, [username]);
-
+    const fetchRequests = async () => {
+        try {
+            if (requestCount === 'all') {
+                const response = await getAllPlexRequests();
+                setRecentPlexRequests(response.data);
+            } else {
+                const response = await getPlexRequestsByCount(requestCount);
+                setRecentPlexRequests(response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching Plex requests:', error);
+            setRecentPlexRequests([]);
+        }
+    };
 
     const handleAutoSearch = async (imdbID) => {
         try {
             setLoading(true);
-
             const details = await getIMDbDetails(imdbID);
             const inLibrary = await checkInLibrary(details.Title, details.Year, details.imdbID, details.Type);
-            const inRequests = await checkInRequests(details.Title);
-
+            const inRequests = await checkInRequests(details.imdbID);
             setSelectedResult({ ...details, inLibrary, inRequests });
-
         } catch (error) {
             console.error('Error fetching IMDb details:', error);
         } finally {
             setLoading(false);
         }
     };
-
-
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -85,10 +76,9 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
             const results = await searchIMDb(searchTerm, searchYear);
             const resultsWithLibraryRequestsInfo = await Promise.all(results.map(async (result) => {
                 const inLibrary = await checkInLibrary(result.Title, result.Year, result.imdbID, result.Type);
-                const inRequests = await checkInRequests(result.Title);
+                const inRequests = await checkInRequests(result.imdbID);
                 return { ...result, inLibrary, inRequests };
             }));
-            console.log(resultsWithLibraryRequestsInfo);
             setSearchResults(resultsWithLibraryRequestsInfo);
         } catch (error) {
             console.error('Error searching IMDb:', error);
@@ -106,17 +96,15 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         const details = await getIMDbDetails(result);
         if (details) {
             const inLibrary = await checkInLibrary(details.Title, details.Year, details.imdbID, details.Type);
-            const inRequests = await checkInRequests(details.Title);
+            const inRequests = await checkInRequests(details.imdbID);
             setSelectedResult({ ...details, inLibrary, inRequests });
         }
         navigate(`/plex/${result}`);
     };
 
     const handleRequest = async (result) => {
-        console.log(result);
         try {
             const response = await addPlexRequest(result.Type, result.imdbID, result.Title);
-            console.log(response);
             if (response.status === 200) {
                 await sendToDiscordWebhook(selectedResult || result, username);
                 setSearchResults(prevResults =>
@@ -128,33 +116,30 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                 );
                 onRequestSuccess(result.Title).then(() => {
                     let time = new Date();
-                    setPlexRequests(prevRequests => [...prevRequests, { request: result.Title, status: 'pending', updatedAt: time }]);
+                    setRecentPlexRequests(prevRequests => [...prevRequests, { request: result.Title, imdbID: result.imdbID, status: 'pending', updatedAt: time }]);
                 });
             } else if (response.status === 201) {
-                alert('Request already exists asshole');
+                alert('Request already exists');
             }
-
         } catch (error) {
             console.error('Error sending request to Discord:', error);
         }
     };
 
-
-    const checkInRequests = async (title) => {
+    const checkInRequests = async (imdbID) => {
+        console.log('Checking requests for:', imdbID);
         try {
-            if (!plexRequests) {
-                setPlexRequests(await getPlexRequests());
-            };
-            const matchingRequest = plexRequests.find(request => request.request.toLowerCase() === title.toLowerCase() && request.status === 'pending');
-            console.log(title, matchingRequest ? 'Request exists' : 'Request does not exist');
+            if (!allPlexRequests.length) {
+                const response = await getAllPlexRequests();
+                setAllPlexRequests(response.data);
+            }
+            const matchingRequest = allPlexRequests.find(request => request.imdbID === imdbID);
             return !!matchingRequest;
         } catch (error) {
             console.error('Error checking Plex requests:', error);
             return false;
         }
     };
-
-
 
     const checkInLibrary = async (title, year, imdbID, type) => {
         try {
@@ -166,10 +151,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
                 // Handling TV show data
                 if (tvShowLibrary && tvShowLibrary.response && tvShowLibrary.response.data && Array.isArray(tvShowLibrary.response.data.data) && type === 'series') {
-
                     const recentById = await getPlexItemsByImdbID(imdbID);
-                    console.log('show', imdbID, recentById);
-
                     const matchingMedia = tvShowLibrary.response.data.data.filter(media => {
                         let plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
                         if (plexTitle === 'the office (us)') {
@@ -187,10 +169,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
                 // Handling movie data
                 if (movieLibrary && movieLibrary.response && movieLibrary.response.data && Array.isArray(movieLibrary.response.data.data) && type === 'movie') {
-
                     const recentById = await getPlexItemsByImdbID(imdbID);
-                    console.log('movie', imdbID, recentById);
-
                     const matchingMedia = movieLibrary.response.data.data.filter(media => {
                         const plexTitle = replaceSpecialCharacters(media.title).toLowerCase();
                         const titleMatch = imdbTitle.includes(plexTitle);
@@ -209,15 +188,30 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         }
     };
 
-
     return (
         <div ref={ref}>
             {/* list recent plex requests */}
-            {plexRequests && (
+            {Array.isArray(recentPlexRequests) && (
                 <>
-                    <div className='plexRequestHeader'>Recently Requested</div>
+                    <div className='plexRequestHeader'>
+                        Recently Requested
+                        <div className='requestCountDropdown'>
+                            Recent Count
+                            <select
+                                value={requestCount}
+                                onChange={(e) => setRequestCount(e.target.value)}
+                                style={{ float: 'right', margin: '0 1rem' }}
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={'all'}>All</option>
+                            </select>  
+                        </div>
+                        
+                    </div>
                     <div className='requestsGrid'>
-                        {plexRequests.map((request) => (
+                        {recentPlexRequests.map((request) => (
                             <div key={request.id} className='plexRequests searchPage'>
                                 <div className='plexRequestDetails'>
                                     <div className='requestInfo'>
@@ -235,19 +229,19 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                                 {request.status === 'pending' && (
                                                     <button className='button requestFulfill' onClick={() => {
                                                         updatePlexRequestStatus(request.request, 'fulfilled')
-                                                        setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'fulfilled' } : req));
+                                                        setRecentPlexRequests(recentPlexRequests.map(req => req.id === request.id ? { ...req, status: 'fulfilled' } : req));
                                                     }}>Fulfill</button>
                                                 )}
                                                 {request.status === 'pending' && (
                                                     <button className='button requestReject' onClick={() => {
                                                         updatePlexRequestStatus(request.request, 'rejected')
-                                                        setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'rejected' } : req));
+                                                        setRecentPlexRequests(recentPlexRequests.map(req => req.id === request.id ? { ...req, status: 'rejected' } : req));
                                                     }}>Reject</button>
                                                 )}
                                                 {(request.status === 'fulfilled' || request.status === 'rejected') && (
                                                     <button className='button requestUnfulfill' onClick={() => {
                                                         updatePlexRequestStatus(request.request, 'pending');
-                                                        setPlexRequests(plexRequests.map(req => req.id === request.id ? { ...req, status: 'pending' } : req));
+                                                        setRecentPlexRequests(recentPlexRequests.map(req => req.id === request.id ? { ...req, status: 'pending' } : req));
                                                     }}>Unfulfill</button>
                                                 )}
                                             </div>
@@ -255,7 +249,7 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
                                             <button className='button requestDelete' onClick={() => {
                                                 if (window.confirm('Are you sure you want to delete this request?')) {
                                                     deletePlexRequest(request.id);
-                                                    setPlexRequests(plexRequests.filter(req => req.id !== request.id));
+                                                    setRecentPlexRequests(recentPlexRequests.filter(req => req.id !== request.id));
                                                 }
                                             }}><RemoveCircleOutlineIcon style={{ height: '1rem', width: 'fit-content' }} /> </button>
                                         </div>
@@ -365,7 +359,6 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
         </div>
     );
-
 });
 
 export default PlexRequests;

@@ -15,6 +15,7 @@ const { v4: uuidv4 } = require('uuid');
 const { router: fileRoutes, routes: fileRoutesArray } = require('./routes/fileRoutes');
 const { router: authRoutes, routes: authRoutesArray } = require('./routes/authRoutes');
 const { router: plexRoutes, routes: plexRoutesArray } = require('./routes/plexRoutes');
+const { router: utilRoutes, routes: utilRoutesArray } = require('./routes/utilRoutes');
 
 
 /**
@@ -56,13 +57,14 @@ app.use(fileUpload(
 app.use('/files', fileRoutes);
 app.use('/auth', authRoutes);
 app.use('/plex', plexRoutes);
+app.use('/utils', utilRoutes);
 
 const endpoints = {
   message: 'Molex Cloud API',
   endpoints: {}
 };
 
-[fileRoutesArray, authRoutesArray, plexRoutesArray].forEach(routesArray => {
+[fileRoutesArray, authRoutesArray, plexRoutesArray, utilRoutesArray].forEach(routesArray => {
   routesArray.forEach(route => {
     const { method, path, middleware, description, prefix } = route;
 

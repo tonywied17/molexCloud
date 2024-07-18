@@ -1,75 +1,91 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { downloadFile, deleteFile } from '../../../services/api';
-import { getMimeIcon } from '../../../services/helpers';
-import { formatFileSize } from '../../../services/helpers';
+import { getMimeIcon, formatFileSize } from '../../../services/helpers';
 import { AuthContext } from '../../../contexts/AuthContext';
 
-const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
+const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) =>
+{
   const [searchText, setSearchText] = useState('');
   const [expandedYears, setExpandedYears] = useState({});
   const { isLoggedIn, userId } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (files && files.files) {
+  useEffect(() =>
+  {
+    if (files && files.files)
+    {
       const mostRecentDate = findMostRecentDate(files.files);
-      if (mostRecentDate) {
+      if (mostRecentDate)
+      {
         const { year, month, day } = mostRecentDate;
         setExpandedYears((prevExpandedYears) => ({
-          ...prevExpandedYears[year],
+          ...prevExpandedYears,
           [year]: {
             ...prevExpandedYears[year],
             [month]: {
               ...prevExpandedYears[year]?.[month],
               [day]: true,
             },
-
           },
         }));
       }
     }
   }, [files]);
 
-  const findMostRecentDate = (fileList) => {
+
+  const findMostRecentDate = (fileList) =>
+  {
     let mostRecentDate;
-    fileList.forEach((file) => {
+    fileList.forEach((file) =>
+    {
       const date = new Date(file.createdAt);
       const year = date.getFullYear();
       const month = date.toLocaleString('default', { month: 'long' });
       const day = date.getDate();
-      if (!mostRecentDate || date > mostRecentDate.date) {
+      if (!mostRecentDate || date > mostRecentDate.date)
+      {
         mostRecentDate = { year, month, day, date };
       }
     });
     return mostRecentDate;
   };
 
+  if (!files)
+  {
+    return <div>Loading...</div>;
+  }
 
-  if (!files) {
-    return files.error ? <div>{files.error}</div> : <div>Loading...</div>;
-  } 
+  if (files.error)
+  {
+    return <div>{files.error}</div>;
+  }
+
 
   const fileList = files.files || [];
   const filteredFiles = fileList.filter((file) =>
     file.filename.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text) =>
+  {
     navigator.clipboard.writeText(text);
     alert('Copied to clipboard');
   };
 
-  const handleSearchChange = (event) => {
+  const handleSearchChange = (event) =>
+  {
     setSearchText(event.target.value);
   };
 
-  const toggleYear = (year) => {
+  const toggleYear = (year) =>
+  {
     setExpandedYears((prevExpandedYears) => ({
       ...prevExpandedYears,
       [year]: !prevExpandedYears[year],
     }));
   };
 
-  const toggleMonth = (year, month) => {
+  const toggleMonth = (year, month) =>
+  {
     setExpandedYears((prevExpandedYears) => ({
       ...prevExpandedYears,
       [year]: {
@@ -79,7 +95,8 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
     }));
   };
 
-  const toggleDay = (year, month, day) => {
+  const toggleDay = (year, month, day) =>
+  {
     setExpandedYears((prevExpandedYears) => ({
       ...prevExpandedYears,
       [year]: {
@@ -92,26 +109,32 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
     }));
   };
 
-  const handleDeleteFile = (fileId) => async () => {
+  const handleDeleteFile = (fileId) => async () =>
+  {
     const confirmDelete = window.confirm('Are you sure you want to delete this file?');
-    if (!confirmDelete) {
+    if (!confirmDelete)
+    {
       return;
     }
 
-    try {
+    try
+    {
       const response = await deleteFile(fileId);
 
-      if (response.status === 400) {
+      if (response.status === 400)
+      {
         alert(response.data.error)
       }
 
       onDeleteSuccess();
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error deleting file:', error);
     }
   };
 
-  const countItems = (year, month, day) => {
+  const countItems = (year, month, day) =>
+  {
     if (!year) return Object.keys(groupFilesByDate(fileList)).length;
     if (!month) return Object.keys(groupFilesByDate(fileList)[year]).length;
     if (!day) return Object.keys(groupFilesByDate(fileList)[year][month]).length;
@@ -200,7 +223,8 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
                                       <div className='fileButtonsContainer'>
                                         <button
                                           className='button downloadFile'
-                                          onClick={async () => {
+                                          onClick={async () =>
+                                          {
                                             await downloadFile(file.id, file.filename)
                                             onDownloadSuccess(file.id)
                                           }}
@@ -281,20 +305,25 @@ const UserFiles = ({ files, onDeleteSuccess, onDownloadSuccess }) => {
 export default UserFiles;
 
 // Function to group files by date
-const groupFilesByDate = (files) => {
-  return files.reduce((acc, file) => {
+const groupFilesByDate = (files) =>
+{
+  return files.reduce((acc, file) =>
+  {
     const date = new Date(file.createdAt);
     const year = date.getFullYear();
     const month = date.toLocaleString('default', { month: 'long' });
     const day = date.getDate();
 
-    if (!acc[year]) {
+    if (!acc[year])
+    {
       acc[year] = {};
     }
-    if (!acc[year][month]) {
+    if (!acc[year][month])
+    {
       acc[year][month] = {};
     }
-    if (!acc[year][month][day]) {
+    if (!acc[year][month][day])
+    {
       acc[year][month][day] = [];
     }
     acc[year][month][day].push(file);

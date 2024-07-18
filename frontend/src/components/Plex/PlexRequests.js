@@ -25,29 +25,33 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
     const imdbID = window.location.pathname.split('/').pop();
 
     useEffect(() => {
+        const fetchRequests = async () => {
+            try {
+                let response;
+                if (requestCount === 'all') {
+                    response = await getAllPlexRequests();
+                } else {
+                    response = await getPlexRequestsByCount(requestCount);
+                }
+                console.log('Fetched requests:', response.data); 
+                setRecentPlexRequests(response.data);
+                setAllPlexRequests(response.data);
+            } catch (error) {
+                console.error('Error fetching Plex requests:', error);
+                setRecentPlexRequests([]);
+            }
+        };
+
         fetchRequests();
     }, [requestCount]);
+    
 
     useEffect(() => {
         if (imdbID && imdbID.includes('tt')) {
             handleAutoSearch(imdbID);
         }
     }, [imdbID]);
-
-    const fetchRequests = async () => {
-        try {
-            if (requestCount === 'all') {
-                const response = await getAllPlexRequests();
-                setRecentPlexRequests(response.data);
-            } else {
-                const response = await getPlexRequestsByCount(requestCount);
-                setRecentPlexRequests(response.data);
-            }
-        } catch (error) {
-            console.error('Error fetching Plex requests:', error);
-            setRecentPlexRequests([]);
-        }
-    };
+    
 
     const handleAutoSearch = async (imdbID) => {
         try {
@@ -65,10 +69,11 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
 
     const handleSearch = async (e) => {
         e.preventDefault();
-        setSearchResults(null);
-        setSelectedResult(null);
+
         if (searchTerm === '') {
             setSearchTerm('');
+            setSearchResults(null);
+            setSelectedResult(null);
             return;
         }
         try {
@@ -126,20 +131,30 @@ const PlexRequests = forwardRef(({ onRequestSuccess }, ref) => {
         }
     };
 
-    const checkInRequests = async (imdbID) => {
+    const checkInRequests = (imdbID) => {
         console.log('Checking requests for:', imdbID);
-        try {
-            if (!allPlexRequests.length) {
-                const response = await getAllPlexRequests();
-                setAllPlexRequests(response.data);
-            }
-            const matchingRequest = allPlexRequests.find(request => request.imdbID === imdbID);
-            return !!matchingRequest;
-        } catch (error) {
-            console.error('Error checking Plex requests:', error);
-            return false;
+        const matchingRequest = allPlexRequests.find(request => request.imdbID === imdbID);
+    
+        if (matchingRequest) {
+            return true;
+        } else {
+            // Fetch requests and check again if not found
+            console.log('Fetching all requests...');
+            getAllPlexRequests()
+                .then(response => {
+                    const updatedRequests = response.data;
+                    setAllPlexRequests(updatedRequests);
+                    
+                    const updatedMatchingRequest = updatedRequests.find(request => request.imdbID === imdbID);
+                    return !!updatedMatchingRequest;
+                })
+                .catch(error => {
+                    console.error('Error checking Plex requests:', error);
+                    return false;
+                });
         }
     };
+    
 
     const checkInLibrary = async (title, year, imdbID, type) => {
         try {
